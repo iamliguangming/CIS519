@@ -24,7 +24,7 @@ def CompletePath(s, w, h) -> str:
     '''
     locationX = 0 #Track for location of X
     locationY = 0 #Track for location of Y
-    history = [] #List to store history location
+    history = [(0,0)] #List to store history location
 
 
     s,sL,sR,sU,sD = list(s),list(s),list(s),list(s),list(s)
