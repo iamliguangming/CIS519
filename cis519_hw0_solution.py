@@ -46,7 +46,7 @@ def CompletePath(s, w, h) -> str:
                 locationY -=1
             location = (locationX,locationY)
             if location in history:
-                return('')
+                return(None)
             else:
 
                 history.append(location)
@@ -71,7 +71,7 @@ def CompletePath(s, w, h) -> str:
     if numberUnknown == 0 and up_Required ==0 and right_Required==0: #If no unknown remains and alreay at destination, return the path
         return(''.join(s))
     elif numberUnknown ==0 and (up_Required!=0 or right_Required !=0): #if no unknown remains but not at destination, discard the path
-        return('')
+        return(None)
 
     if s.index('?') == 0:
         return(CompletePath(''.join(sU), w, h) or CompletePath(''.join(sR), w, h)) #If the first unknown is at the beginning, the only possible path is to right or top
@@ -117,7 +117,7 @@ import numpy as np
 
 
 # Read in the datafile using Pandas
-# df = pd.read_csv("train.csv")
+df = pd.read_csv("train.csv")
 
 # df = ...            # # TODO # #
 
