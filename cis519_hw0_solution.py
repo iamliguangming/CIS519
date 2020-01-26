@@ -47,6 +47,8 @@ def CompletePath(s, w, h) -> str:
             location = (locationX,locationY)
             if location in history:
                 return(None)
+            if locationX > w-1 or locationX < 0 or locationY > h-1 or locationY < 0:
+                return(None)
             else:
 
                 history.append(location)
@@ -117,7 +119,7 @@ import numpy as np
 
 
 # Read in the datafile using Pandas
-# df = pd.read_csv("train.csv")
+data = pd.read_csv("train.csv")
 
 # df = ...            # # TODO # #
 
@@ -199,30 +201,34 @@ def addDummyFeatures(inputDf, feature):
 
 
     ## TODO ##
+    # if feature not in inputDf.columns:
+    #     return('Feature not in dataset')
+    # rows,columns = inputDf.shape
+    # feature_List = []
+    # OHE_Matrix = np.array([[]]) #Create a matrix to store the OHE values
+    # for i in range(rows):
+    #     if pd.isna(inputDf.loc[i,feature]):
+    #         OHE_Matrix = np.concatenate((OHE_Matrix,np.zeros((1,len(feature_List)))),axis=0) #If missing data, create a new row of zeros
+    #     elif str(inputDf.loc[i,feature]) not in feature_List:
+    #         feature_List.append(str(inputDf.loc[i,feature]))
+    #         OHE_Matrix = np.concatenate((OHE_Matrix,np.zeros((i+1,1))),axis=1)#if there is a new feature, create a new column of zeros
+    #     if str(inputDf.loc[i,feature]) in feature_List:
+    #         OHE_Matrix = np.concatenate((OHE_Matrix,np.zeros((1,len(feature_List)))),axis=0)#if this it is alreay in feature list , create a new row of zeros  and set the feature related column to 1
+    #         OHE_Matrix[i,feature_List.index(str(inputDf.loc[i,feature]))]=1
+    # for i in range(len(feature_List)):
+    #     feature_List[i] = feature + '_'+feature_List[i]#New column names for OHE
+
+    # OHE_Matrix = np.delete(OHE_Matrix,rows,0)#Delete the extra row created
+
+    # dataOut= pd.DataFrame(OHE_Matrix,columns=feature_List) #Create a dataframe with OHE as matrix and the new feature list
+    # outDf = pd.concat([inputDf,dataOut],axis=1)#Concate new features to original matrix
+    # outDf = outDf.drop(feature,axis=1)#drop the original feature
+    
     if feature not in inputDf.columns:
-        return('Feature not in dataset')
-    rows,columns = inputDf.shape
-    feature_List = []
-    OHE_Matrix = np.array([[]]) #Create a matrix to store the OHE values
-    for i in range(rows):
-        if pd.isna(inputDf.loc[i,feature]):
-            OHE_Matrix = np.concatenate((OHE_Matrix,np.zeros((1,len(feature_List)))),axis=0) #If missing data, create a new row of zeros
-        elif str(inputDf.loc[i,feature]) not in feature_List:
-            feature_List.append(str(inputDf.loc[i,feature]))
-            OHE_Matrix = np.concatenate((OHE_Matrix,np.zeros((i+1,1))),axis=1)#if there is a new feature, create a new column of zeros
-        if str(inputDf.loc[i,feature]) in feature_List:
-            OHE_Matrix = np.concatenate((OHE_Matrix,np.zeros((1,len(feature_List)))),axis=0)#if this it is alreay in feature list , create a new row of zeros  and set the feature related column to 1
-            OHE_Matrix[i,feature_List.index(str(inputDf.loc[i,feature]))]=1
-    for i in range(len(feature_List)):
-        feature_List[i] = feature + '_'+feature_List[i]#New column names for OHE
+        raise ValueError('This is not in the feature list')
+        return(None)
 
-    OHE_Matrix = np.delete(OHE_Matrix,rows,0)#Delete the extra row created
-
-    dataOut= pd.DataFrame(OHE_Matrix,columns=feature_List) #Create a dataframe with OHE as matrix and the new feature list
-    outDf = pd.concat([inputDf,dataOut],axis=1)#Concate new features to original matrix
-    outDf = outDf.drop(feature,axis=1)#drop the original feature
-
-    return outDf
+    return (pd.concat([inputDf,pd.get_dummies(inputDf.loc[:,feature],prefix=feature)],axis=1)).drop(feature,axis=1)
 
 
 # In[11]:
