@@ -119,7 +119,7 @@ import numpy as np
 
 
 # Read in the datafile using Pandas
-data = pd.read_csv("train.csv")
+# data = pd.read_csv("train.csv")
 
 # df = ...            # # TODO # #
 
@@ -135,7 +135,7 @@ def getMissingRatio(inputDf):
         for j in range(rows):
             if pd.isna(inputDf.at[j,inputDf.columns[i]]): #If the data at a certain location in a feature is missing , increase the missing number
                 number_Missing +=1
-        ratio_Array.append(number_Missing/rows*100) #Calculate the percentage missing based on the number missing
+        ratio_Array.append(number_Missing/rows) #Calculate the percentage missing based on the number missing
         number_Missing = 0 #Reset the number missing for another feature
 
     outDf = pd.DataFrame({'Feature':inputDf.columns,'MissingPercent':ratio_Array}) #Build a dataframe with missing features and missing rate
@@ -223,7 +223,7 @@ def addDummyFeatures(inputDf, feature):
     # dataOut= pd.DataFrame(OHE_Matrix,columns=feature_List) #Create a dataframe with OHE as matrix and the new feature list
     # outDf = pd.concat([inputDf,dataOut],axis=1)#Concate new features to original matrix
     # outDf = outDf.drop(feature,axis=1)#drop the original feature
-    
+
     if feature not in inputDf.columns:
         raise ValueError('This is not in the feature list')
         return(None)
