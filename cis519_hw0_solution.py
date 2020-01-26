@@ -117,7 +117,7 @@ import numpy as np
 
 
 # Read in the datafile using Pandas
-df = pd.read_csv("train.csv")
+# df = pd.read_csv("train.csv")
 
 # df = ...            # # TODO # #
 
