@@ -119,7 +119,7 @@ import numpy as np
 
 
 # Read in the datafile using Pandas
-# data = pd.read_csv("train.csv")
+data = pd.read_csv("train.csv")
 
 # df = ...            # # TODO # #
 
@@ -169,7 +169,7 @@ def convertToBinary(inputDf, feature):
             pass
         else:
             print (f'{feature} is not a binary feature')# If there is a different value other than the first two, raise error
-            return(0)
+            return(None)
 
     outDf = inputDf
     return outDf
@@ -236,6 +236,6 @@ def addDummyFeatures(inputDf, feature):
 
 
 
-
+   
 
 # In[ ]:
