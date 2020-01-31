@@ -16,7 +16,7 @@ import random
 import numpy as np
 import pandas as pd
 from sklearn import tree
-from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
 random.seed(42)  # don't change this line
 
@@ -25,8 +25,8 @@ random.seed(42)  # don't change this line
 
 
 # Load all data tables
-baseDir = '/Users/yupengli/CIS519/HW1/'
-df = pd.read_csv(baseDir+'hw1-NHANES-diabetes-train.csv')
+# baseDir = '/Users/yupengli/CIS519/HW1/'
+df = pd.read_csv('hw1-NHANES-diabetes-train.csv')
 
 # Output debugging info
 print(df.shape)
