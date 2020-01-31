@@ -286,7 +286,8 @@ def automatic_dt_pruning(DecisionTreeClassifier, X, y, num_trials, num_folds, ra
   accuracyList = []
   for ccp_alpha in ccp_alpha_List:
       print(f'ccp_alpha = {ccp_alpha}')
-      accuracy_Run = cross_validated_accuracy(tree.DecisionTreeClassifier(criterion='entropy',ccp_alpha = ccp_alpha),X, y, num_trials, num_folds, random_seed)
+      DecisionTreeClassifier.set_params(ccp_alpha = ccp_alpha)
+      accuracy_Run = cross_validated_accuracy(DecisionTreeClassifier,X, y, num_trials, num_folds, random_seed)
       print(accuracy_Run)
       if len(accuracyList) > 0:
           if accuracyList[-1]-accuracy_Run > 0.01:
