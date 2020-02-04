@@ -55,7 +55,9 @@
         
        \section{Decision Trees \& Linear Discriminants [CIS 519 ONLY]}
         
-        A decision tree can include oblique splits by...
+        A decision tree can include oblique splits by taking linear combinations features when growing the decision tree. By doing it this way, our nodes would be classified using more than one feature, and this would result in oblique split in the decision tree which may not be parallel to the axes.
+        
+        For example, suppose we were training the data using the classic decision tree algorithms(ID3/C4.5), we are picking a single feature with highest information gain ratio for each node. If we want to do an oblique split, we pick the linear combination with highest information gain ratio for each node instead. The way we linearly combine those features is that we weigh each feature based on the information they can provide, then we multiply the features' information gain by their weight and sum up to get the info gain of this combination. After this, we choose the best combination of this node.
         
         
         \section{Programming Exercises}
