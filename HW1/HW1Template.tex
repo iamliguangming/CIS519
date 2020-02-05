@@ -63,7 +63,19 @@
         \section{Programming Exercises}
         \textbf{Features}: What features did you choose and how did you preprocess them?
         
+        I chose features from the original DataFrame using the function corrwith from Pandas library. It correlates the features from the dataframe to the predictions in y series. Then I rank them based on their absolute value and picked the top 30 of them.  Then I group them into groups of 10 and separate them into three different groups 1,2 and 3. (Before this step I already dropped 'SEQN' and 'DIQ010', since one of them is too correlated and the other is not at all related)
+        
+        After this, I start preprocessing the data. I first pick the desired features out from the original Dataframe. Then I drop features with more than 50\% missing rate while one-hot-encoding features whose datatypes are object instead of floats. Then I use the SimpleImputer from sklearn.impute to fill in the rest of NaNs with the mean of certain columns.
+        
+        For the first set, the features I chose are 'MCQ240K', 'LBDSGLSI', 'LBXSGL', 'LBXGLT', 'LBDGLTSI', 'CSQ120A', 'GTDCODE', 'DIQ070', 'DIQ050' which are the middle 10 of the top 30.
+        
+        For the second set, the features I chose are 'RHQ602U', 'RIDAGEYR', 'MCQ230C', 'OSQ120E', 'BMDAVSAD', 'BMXSAD2', 'BMXSAD1', 'BMXWAIST', 'DRD370JQ', which are the bottom 10 of top 30.
+        
+        For the third set, I am using the best I had from training the whole dataset which are 'LBDSGLSI', 'DIQ160', 'RIDAGEYR', 'DIQ180'.
+        
         \noindent\textbf{Parameters}: What parameters did you use to train your best decision tree
+        
+        Criterion = 'entropy'  for tree growth and ccp\_alpha for pruning
         
         \noindent\textbf{Performance Table}: 
         \begin{center}
@@ -71,9 +83,9 @@
                 \hline
                 Feature Set & Accuracy & Conf. Interval [519 ONLY]\\
                 \hline
-                DT 1 & a & b  \\
-                DT 2 & a & b  \\
-                DT 3 & a & b  \\
+                DT 1 & 0.947 & [0.94166,0.9527]  \\
+                DT 2 & 0.87699 & [0.867636,0.885344]  \\
+                DT 3 & 0.9823 &  [0.97887,0.98586] \\
                 \hline
         \end{tabular}
                 \end{center}
@@ -82,4 +94,5 @@
         
         \textbf{Conclusion}: What can you conclude from your experience?
         
+        From the tests above, we learn that we need to pick the most correlated features to get the best accuracies. However, we should also notice that not all best features are the best indications. Some features like DIQ010 which is "has a doctor ever told you that you have diabetes' have high correlation with diagnose classification. However, it doesn't even help when diagnosing a new patient. Besides, the reason why I am not picking the top10 from top 30 for decision tree is that it has too many NaNs in that. I think that is due to the nature of corrwith function itself. It is ranking columns with highest missing rate as 'Most correlated', that means we should probably drop the top 10 if we are picking our features using correlation.
 \end{document}

@@ -15,6 +15,7 @@
 import random 
 import numpy as np
 import pandas as pd
+from sklearn import tree
 random.seed(42)  # don't change this line
 def addDummyFeatures(inputDf, feature):
     """
@@ -99,8 +100,11 @@ def addDummyFeatures(inputDf, feature):
 
 def cross_validated_accuracy(DecisionTreeClassifier, X, y, num_trials, num_folds, random_seed):
    random.seed(random_seed)
-   corrects = 0
-   testedTotal = 0
+   y = pd.DataFrame(y)
+   y = y.iloc[:,0]
+   # corrects = 0
+   # testedTotal = 0
+   accuracy_Arr = np.zeros((num_trials,num_folds))
    for i in range(num_trials):
        index = [q for q in range(X.shape[0])]
        random.shuffle(index)
@@ -121,15 +125,24 @@ def cross_validated_accuracy(DecisionTreeClassifier, X, y, num_trials, num_folds
            predictedy = model.predict(testDf)
            # print(f'Trial {i} Fold {j}')
            # print((predictedy == testy).sum()/len(testy))
-           corrects += (predictedy == testy).sum()
-           testedTotal += len(testy)
-   cvScore = corrects / testedTotal
+           accuracy_Arr[i,j] = (predictedy ==testy).sum()/len(testy)
+           # corrects += (predictedy == testy).sum()
+           # testedTotal += len(testy)
+   cvScore = accuracy_Arr.sum()/(num_trials*num_folds)
+   
+   # cvScore = corrects/testedTotal
+   x_bar = np.mean(accuracy_Arr)
+   S = np.std(accuracy_Arr)
+   n = len(accuracy_Arr)
+   t = 2.626
+   confidence = (x_bar+t*S/np.sqrt(n),x_bar-t*S/np.sqrt(n))
+   
+   print(cvScore)
 
 
 
 
-
-   return cvScore
+   return(cvScore)
   # """
   #  Args:
   #       DecisionTreeClassifier: An Sklearn DecisionTreeClassifier (e.g., created by "tree.DecisionTreeClassifier(criterion='entropy')")
