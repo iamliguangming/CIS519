@@ -178,11 +178,12 @@ class PolynomialRegression:
         '''
         Constructor
         '''
-        self.alpha = 0
-        self.theta = np.zeros(degree+1)
+        self.alpha = 0.1
+        self.theta = np.zeros(degree)
         self.regLambda = regLambda
         self.degree = degree
-        self.n_iter = 100
+        self.n_iter = 2000
+        self.theta_0 = 0
         #TODO
 
 
@@ -231,15 +232,13 @@ class PolynomialRegression:
         #TODO
         X = self.polyfeatures(X,self.degree)
         for i in range(X.shape[1]):
-            mu_J = 1/X.shape[0]*X.iloc[:,i].sum()
+            mu_J = X.iloc[:,i].mean()
             s = X.iloc[:,i].std()
             X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-mu_J)/s)
-        n = len(y)
         X = X.to_numpy()
         X = np.c_[np.ones((n,1)), X]     # Add a row of ones for the bias term
 
         y = y.to_numpy().flatten()
-        n,d = X.shape
         
         self.theta = self.gradientDescent(X,y,self.theta)   
 
@@ -261,6 +260,8 @@ class PolynomialRegression:
 
             hypo = X*theta
             theta = theta*(1-self.alpha*self.regLambda)-self.alpha/X.shape[0]*np.sum((hypo-y)*X,axis=0)
+            self.theta_0 = theta_0 -self.alpha/n*
+            print(theta)
         
 
         return theta
@@ -275,12 +276,15 @@ class PolynomialRegression:
         '''
         # TODO
         X = self.polyfeatures(X,self.degree)
+        for i in range(X.shape[1]):
+            mu_J = X.iloc[:,i].mean()
+            s = X.iloc[:,i].std()
+            X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-mu_J)/s)
         X = X.to_numpy()
 
-        X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
-        return pd.DataFrame(X*self.theta)
+        # X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
+        return pd.DataFrame(np.matmul(X,self.theta))
 
-        return None
 
 
 
@@ -307,7 +311,7 @@ def test_polyreg_univariate():
 
     # regression with degree = d
     d = 8
-    model = PolynomialRegression(degree = d, regLambda = 0)
+    model = PolynomialRegression(degree = d, regLambda = 0.01)
     model.fit(X, y)
     
     # output predictions
