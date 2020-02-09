@@ -179,7 +179,10 @@ class PolynomialRegression:
         Constructor
         '''
         self.alpha = 0
-        self.theta = None
+        self.theta = np.zeros(degree+1)
+        self.regLambda = regLambda
+        self.degree = degree
+        self.n_iter = 100
         #TODO
 
 
@@ -226,17 +229,42 @@ class PolynomialRegression:
                 You need to apply polynomial expansion and scaling first
         '''
         #TODO
-        X = self.polyfeatures(X,3)
+        X = self.polyfeatures(X,self.degree)
         for i in range(X.shape[1]):
             mu_J = 1/X.shape[0]*X.iloc[:,i].sum()
             s = X.iloc[:,i].std()
             X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-mu_J)/s)
+        n = len(y)
+        X = X.to_numpy()
+        X = np.c_[np.ones((n,1)), X]     # Add a row of ones for the bias term
+
+        y = y.to_numpy().flatten()
+        n,d = X.shape
+        
+        self.theta = self.gradientDescent(X,y,self.theta)   
+
             
-        return X
+    
+    # def cost(self, X, y,theta):
+    #     hypo = np.matmul(X,theta)
+    #     cost = 1/X.shape[0]*np.sum((hypo-y)**2,axis=0) + self.regLambda * np.sum(theta**2)
+        
+    #     return cost 
             
+    
+    def gradientDescent(self, X, y, theta):
+        self.JHist = []
+        y = y.reshape(len(y),1)
+        for i in range(self.n_iter):
+            # self.JHist.append( (self.cost(X, y, theta), theta) )
+            # print("Iteration: ", i+1, " Cost: ", self.JHist[i][0], " Theta.T: ", theta.T)
+
+            hypo = X*theta
+            theta = theta*(1-self.alpha*self.regLambda)-self.alpha/X.shape[0]*np.sum((hypo-y)*X,axis=0)
         
-        
-        
+
+        return theta
+    
     def predict(self, X):
         '''
         Use the trained model to predict values for each instance in X
@@ -246,6 +274,13 @@ class PolynomialRegression:
             an n-by-1 data frame of the predictions
         '''
         # TODO
+        X = self.polyfeatures(X,self.degree)
+        X = X.to_numpy()
+
+        X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
+        return pd.DataFrame(X*self.theta)
+
+        return None
 
 
 
