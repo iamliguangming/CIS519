@@ -7,7 +7,7 @@
 
 
 import pandas as pd
-
+import random
 import numpy as np
 from numpy import linalg as LA
 from numpy.linalg import *
@@ -174,7 +174,7 @@ import numpy as np
 
 class PolynomialRegression:
 
-    def __init__(self, degree = 1, regLambda = 1E-8):
+    def __init__(self, degree = 1, regLambda = 1E-8, tuneLambda = True, regLambdaValues=[]):
         '''
         Constructor
         '''
@@ -183,6 +183,7 @@ class PolynomialRegression:
         self.regLambda = regLambda
         self.degree = degree
         self.n_iter = 2000
+        self.regLambdaValues = regLambdaValues
         #TODO
 
 
@@ -242,13 +243,7 @@ class PolynomialRegression:
         self.theta = self.gradientDescent(X,y,self.theta)   
 
             
-    
-    # def cost(self, X, y,theta):
-    #     hypo = np.matmul(X,theta)
-    #     cost = 1/X.shape[0]*np.sum((hypo-y)**2,axis=0) + self.regLambda * np.sum(theta**2)
-        
-    #     return cost 
-            
+
     
     def gradientDescent(self, X, y, theta):
         self.JHist = []
@@ -262,6 +257,8 @@ class PolynomialRegression:
             # theta[1:len(theta)] = theta[1:len(theta)]*(1-self.alpha*self.regLambda)-self.alpha/X.shape[0]*np.sum((hypo-y)*X,axis=0)[1:len(theta)]
             for j in range(X.shape[1]):
                 hypo = np.matmul(X,theta)
+                cost = self.cost(X, y, theta)
+                print(cost)
                 if j ==0:
                     theta[j]=theta[j]-self.alpha/X.shape[0]*((hypo-y).sum())
                     pass
@@ -293,8 +290,55 @@ class PolynomialRegression:
         X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
         return pd.DataFrame(np.matmul(X,self.theta))
 
+    def cost(self,X,y,theta):
+        
+        # X = self.polyfeatures(X, self.degree)
+        # for i in range(X.shape[1]):
+        #     mu_J = X.iloc[:,i].mean()
+        #     s = X.iloc[:,i].std()
+        #     X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-mu_J)/s)
+        # X = X.to_numpy()
+        # X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
+
+        # y = y.to_numpy().flatten()
+        
+        hypo = np.matmul(X,theta)
+        
+        cost = 1/X.shape[0]*((hypo-y)**2).sum()+self.regLambda * (theta[1:]**2).sum()
+        return cost
 
 
+    def autoTuning(self, X,y):
+        return None
+        
+    def cross_validated_accuracy(self, X, y, num_trials, num_folds, random_seed, regLambda):
+       random.seed(random_seed)
+       accuracy_Arr = np.zeros((num_trials,num_folds))
+       for i in range(num_trials):
+           index = [q for q in range(X.shape[0])]
+           random.shuffle(index)
+           shuffledDf = X.set_index([index]).sort_index()
+           sudoY = y.copy()
+           sudoY.index = index
+           shuffledy = sudoY.sort_index()
+           dfList = np.array_split(shuffledDf,num_folds)
+           yList = np.array_split(shuffledy,num_folds)  
+           for j in range(num_folds):
+               dfs = dfList.copy()
+               ys = yList.copy()
+               testDf = dfs.pop(j)
+               testy = ys.pop(j)
+               sampleDf = pd.concat(dfs,axis=0)
+               sampley = pd.concat(ys,axis=0)
+               self.fit(sampleDf,sampley)
+               accuracy_Arr[i,j] = self.cost(testDf,testy,self.theta)
+       cvScore = accuracy_Arr.sum()/(num_trials*num_folds)
+       
+       print(cvScore)
+      
+       return(cvScore)
+
+        
 
 
 # # Test Polynomial Regression
@@ -319,7 +363,8 @@ def test_polyreg_univariate():
 
     # regression with degree = d
     d = 8
-    model = PolynomialRegression(degree = d, regLambda = 0)
+    model = PolynomialRegression(degree = d, regLambda = 0.001)
+    # model.cross_validated_accuracy(X, y, 10, 10, 42)
     model.fit(X, y)
     
     # output predictions
