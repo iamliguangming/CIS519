@@ -153,7 +153,7 @@ def test_linreg(n_iter = 2000):
 # In[ ]:
 
 
-test_linreg(2000)
+# test_linreg(2000)
 
 
 # # Polynomial Regression
@@ -178,12 +178,11 @@ class PolynomialRegression:
         '''
         Constructor
         '''
-        self.alpha = 0.1
-        self.theta = np.zeros(degree)
+        self.alpha = 0.4
+        self.theta = np.zeros(degree+1)
         self.regLambda = regLambda
         self.degree = degree
         self.n_iter = 2000
-        self.theta_0 = 0
         #TODO
 
 
@@ -236,7 +235,7 @@ class PolynomialRegression:
             s = X.iloc[:,i].std()
             X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-mu_J)/s)
         X = X.to_numpy()
-        X = np.c_[np.ones((n,1)), X]     # Add a row of ones for the bias term
+        X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
 
         y = y.to_numpy().flatten()
         
@@ -253,15 +252,24 @@ class PolynomialRegression:
     
     def gradientDescent(self, X, y, theta):
         self.JHist = []
-        y = y.reshape(len(y),1)
+        # y = y.reshape(len(y),1)
         for i in range(self.n_iter):
             # self.JHist.append( (self.cost(X, y, theta), theta) )
             # print("Iteration: ", i+1, " Cost: ", self.JHist[i][0], " Theta.T: ", theta.T)
 
-            hypo = X*theta
-            theta = theta*(1-self.alpha*self.regLambda)-self.alpha/X.shape[0]*np.sum((hypo-y)*X,axis=0)
-            self.theta_0 = theta_0 -self.alpha/n*
-            print(theta)
+
+            # theta[0] = theta[0] -self.alpha/X.shape[0]*(np.matmul(X,theta)-y.reshape(y.shape[0])).sum()
+            # theta[1:len(theta)] = theta[1:len(theta)]*(1-self.alpha*self.regLambda)-self.alpha/X.shape[0]*np.sum((hypo-y)*X,axis=0)[1:len(theta)]
+            for j in range(X.shape[1]):
+                hypo = np.matmul(X,theta)
+                if j ==0:
+                    theta[j]=theta[j]-self.alpha/X.shape[0]*((hypo-y).sum())
+                    pass
+                else:
+                    theta[j] = theta[j]*(1-self.alpha*self.regLambda) - self.alpha/X.shape[0]*((hypo-y)*X[:,j]).sum()
+                    # print(theta)
+        # theta = np.concatenate(([self.theta_0],theta),axis=None)
+ 
         
 
         return theta
@@ -282,7 +290,7 @@ class PolynomialRegression:
             X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-mu_J)/s)
         X = X.to_numpy()
 
-        # X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
+        X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
         return pd.DataFrame(np.matmul(X,self.theta))
 
 
@@ -311,7 +319,7 @@ def test_polyreg_univariate():
 
     # regression with degree = d
     d = 8
-    model = PolynomialRegression(degree = d, regLambda = 0.01)
+    model = PolynomialRegression(degree = d, regLambda = 0)
     model.fit(X, y)
     
     # output predictions
