@@ -257,8 +257,8 @@ class PolynomialRegression:
             # theta[1:len(theta)] = theta[1:len(theta)]*(1-self.alpha*self.regLambda)-self.alpha/X.shape[0]*np.sum((hypo-y)*X,axis=0)[1:len(theta)]
             for j in range(X.shape[1]):
                 hypo = np.matmul(X,theta)
-                cost = self.cost(X, y, theta)
-                print(cost)
+                # cost = self.cost(X, y, theta)
+                # print(cost)
                 if j ==0:
                     theta[j]=theta[j]-self.alpha/X.shape[0]*((hypo-y).sum())
                     pass
@@ -292,15 +292,15 @@ class PolynomialRegression:
 
     def cost(self,X,y,theta):
         
-        # X = self.polyfeatures(X, self.degree)
-        # for i in range(X.shape[1]):
-        #     mu_J = X.iloc[:,i].mean()
-        #     s = X.iloc[:,i].std()
-        #     X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-mu_J)/s)
-        # X = X.to_numpy()
-        # X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
+        X = self.polyfeatures(X, self.degree)
+        for i in range(X.shape[1]):
+            mu_J = X.iloc[:,i].mean()
+            s = X.iloc[:,i].std()
+            X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-mu_J)/s)
+        X = X.to_numpy()
+        X = np.c_[np.ones((X.shape[0],1)), X]     # Add a row of ones for the bias term
 
-        # y = y.to_numpy().flatten()
+        y = y.to_numpy().flatten()
         
         hypo = np.matmul(X,theta)
         
