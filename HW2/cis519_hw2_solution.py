@@ -254,7 +254,7 @@ class PolynomialRegression:
             cv_List = np.zeros(len(regLambda_List))
             for i in range(len(regLambda_List)):
                 print('tuning')
-                currentCV = self.cross_validated_accuracy(X, y, 2,2,regLambda_List[i])
+                currentCV = self.cross_validated_accuracy(X, y, 5,5,regLambda_List[i])
                 # if currentCV > previousCV:
                 cv_List[i] =currentCV
             self.regLambda = regLambda_List[np.where(cv_List == np.min(cv_List))[0][0]]
@@ -387,22 +387,22 @@ class PolynomialRegression:
                sampley = pd.concat(ys,axis=0)
                self.fit(sampleDf,sampley)
                
-               # testDf = self.polyfeatures(testDf, self.degree)
-               # # self.s = []
-               # # self.mu_J = []
-               # for k in range(testDf.shape[1]):
-               #      # self.mu_J[k] = testDf.iloc[:,k].mean()
-               #      # self.s[k] = testDf.iloc[:,k].std()
-               #      testDf.iloc[:,k]= testDf.iloc[:,k].apply(lambda x : (x-self.mu_J[k])/self.s[k])
-               # testDf = testDf.to_numpy()
-               # testDf = np.c_[np.ones((testDf.shape[0],1)), testDf]     # Add a row of ones for the bias term
-               predictedy  = self.predict(testDf).to_numpy().flatten()
+               testDf = self.polyfeatures(testDf, self.degree)
+                # self.s = []
+                # self.mu_J = []
+               for k in range(testDf.shape[1]):
+                      # self.mu_J[k] = testDf.iloc[:,k].mean()
+                      # self.s[k] = testDf.iloc[:,k].std()
+                      testDf.iloc[:,k]= testDf.iloc[:,k].apply(lambda x : (x-self.mu_J[k])/self.s[k])
+               testDf = testDf.to_numpy()
+               testDf = np.c_[np.ones((testDf.shape[0],1)), testDf]     # Add a row of ones for the bias term
+               # predictedy  = self.predict(testDf).to_numpy().flatten()
                testy = testy.to_numpy().flatten()
 
                
                # print(self.cost(testDf,testy,self.theta))
-               # accuracy_Arr[i,j] = self.cost(testDf,testy,self.theta)
-               accuracy_Arr[i,j] = np.linalg.norm(testy - predictedy)
+               accuracy_Arr[i,j] = self.cost(testDf,testy,self.theta)
+               # accuracy_Arr[i,j] = np.linalg.norm(testy - predictedy)
                # print(regLambda)
                # print(accuracy_Arr)
        cvScore = accuracy_Arr.sum()/(num_trials*num_folds)
@@ -436,7 +436,7 @@ def test_polyreg_univariate():
 
     # regression with degree = d
     d = 8
-    model = PolynomialRegression(degree = d, regLambda = 1E-8,tuneLambda= False, regLambdaValues=[0.001,0.003,0.006,0.01,0.03,0.06,0.1,0.3,0.6,1,10])
+    model = PolynomialRegression(degree = d, regLambda = 1E-3,tuneLambda= True, regLambdaValues=[0.001,0.003,0.006,0.01,0.03,0.06,0.1,0.3,0.6,1,10])
     # model.cross_validated_accuracy(X, y, 2, 2,0.1)
     model.fit(X, y)
     
