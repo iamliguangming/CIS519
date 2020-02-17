@@ -436,7 +436,7 @@ def test_polyreg_univariate():
 
     # regression with degree = d
     d = 8
-    model = PolynomialRegression(degree = d, regLambda = 1E-3,tuneLambda= True, regLambdaValues=[0.001,0.003,0.006,0.01,0.03,0.06,0.1,0.3,0.6,1,10])
+    model = PolynomialRegression(degree = d, regLambda = 1E-3,tuneLambda= False, regLambdaValues=[0.001,0.003,0.006,0.01,0.03,0.06,0.1,0.3,0.6,1,10])
     # model.cross_validated_accuracy(X, y, 2, 2,0.1)
     model.fit(X, y)
     
@@ -457,5 +457,5 @@ def test_polyreg_univariate():
 # In[ ]:
 
 
-# test_polyreg_univariate()
+test_polyreg_univariate()
 # 
