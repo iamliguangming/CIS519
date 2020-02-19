@@ -278,7 +278,7 @@ class PolynomialRegression:
         y = y.to_numpy().flatten()
         
 
-        self.theta = self.gradientDescent(X,y,self.theta)   
+
                 
             
 

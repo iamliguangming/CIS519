@@ -9,6 +9,8 @@
 
 import pandas as pd
 import numpy as np
+import random
+from sklearn.preprocessing import StandardScaler
 
 
 # ### Logistic Regression
@@ -18,7 +20,7 @@ import numpy as np
 
 class LogisticRegression:
 
-    def __init__(self, alpha = 0.01, regLambda=0.01, regNorm=2, epsilon=0.0001, maxNumIters = 10000, initTheta = None):
+    def __init__(self, alpha = 0.01, regLambda=0.00000001, regNorm=2, epsilon=0.0001, maxNumIters = 10000, initTheta = None):
         '''
         Constructor
         Arguments:
@@ -29,7 +31,12 @@ class LogisticRegression:
         	maxNumIters is the maximum number of iterations to run
           initTheta is the initial theta value. This is an optional argument
         '''
-
+        self.regLambda = regLambda
+        self.alpha = alpha 
+        self.regNorm = regNorm
+        self.epsilon = epsilon
+        self.maxNumIters = maxNumIters
+        self.initTheta = initTheta
     
 
     def computeCost(self, theta, X, y, regLambda):
@@ -42,7 +49,11 @@ class LogisticRegression:
         Returns:
             a scalar value of the cost  ** make certain you're not returning a 1 x 1 matrix! **
         '''
-
+        y = y.flatten()
+        hypo = self.sigmoid(np.matmul(X,theta))
+        cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda*np.linalg.norm(theta[1:]).sum()
+        
+        return cost 
     
     
     def computeGradient(self, theta, X, y, regLambda):
@@ -54,11 +65,73 @@ class LogisticRegression:
             regLambda is the scalar regularization constant
         Returns:
             the gradient, an d-dimensional vector
+        
         '''
-    
+        
+        y = y.flatten()
+            
+        last_theta = np.zeros(X.shape[1])
+        
+        if self.regNorm ==2:
+            for i in range(self.maxNumIters):
+                hypo = self.sigmoid(X @theta)
+                for j in range(X.shape[1]):
+                    if j ==0 :
+                        theta[j] = theta[j] - self.alpha*((hypo - y).sum())
+                    else:
+                        theta[j] = theta[j]*(1-self.alpha*self.regLambda) - self.alpha * ((hypo-y)*X[:,j]).sum()
+                    
+                # print(np.linalg.norm(theta - last_theta))
+                                
+                if np.linalg.norm(theta - last_theta) < self.epsilon:
+                    break
+                else:
+                    last_theta = theta.copy()
+                    
+        elif self.regNorm ==1:
+            
+            for i in range(self.maxNumIters):
+                hypo = self.sigmoid(X @theta)
+                for j in range(X.shape[1]):
+                    if j ==0 :
+                        theta[j] = theta[j] - self.alpha*((hypo - y).sum())
+                    else:
+                        if theta[j]>= 0 :
+                            theta[j] = theta[j] - self.alpha * ((hypo-y)*X[:,j]).sum() - self.alpha*self.regLambda
+                        elif theta[j] <0:
+                            theta[j] = theta[j] - self.alpha * ((hypo-y)*X[:,j]).sum() + self.alpha*self.regLambda
+                    
+                # print(np.linalg.norm(theta - last_theta))
+                                
+                if np.linalg.norm(theta - last_theta) < self.epsilon:
+                    break
+                else:
+                    last_theta = theta.copy()
+                
+
+        return theta
+                
 
 
     def fit(self, X, y):
+        
+        # self.mu_J = []
+        # self.s = []
+        # for i in range(X.shape[1]):
+        #     # self.mu_J.append(X.iloc[:,i].mean())
+        #     # self.s.append(X.iloc[:,i].std())
+        #     X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-self.mu_J[i])/self.s[i])
+        X = X.to_numpy()
+        X = np.c_[np.ones((X.shape[0],1)), X] #Add a column of one as bias
+        y = y.to_numpy().flatten()
+        
+        if self.initTheta is None:
+            self.initTheta = np.zeros(X.shape[1])
+        
+        self.theta = self.computeGradient(self.initTheta,X,y,self.regLambda)   
+
+        
+        
         '''
         Trains the model
         Arguments:
@@ -68,7 +141,7 @@ class LogisticRegression:
             Don't assume that X contains the x_i0 = 1 constant feature.
             Standardization should be optionally done before fit() is called.
         '''
-
+        
 
     def predict(self, X):
         '''
@@ -81,6 +154,20 @@ class LogisticRegression:
             Don't assume that X contains the x_i0 = 1 constant feature.
             Standardization should be optionally done before predict() is called.
         '''
+        # for i in range(X.shape[0]):
+        #     X.iloc[:,1] = X.iloc[:,i].apply(lambda x : (x-self.mu_J[i])/self.s[i])
+        X = X.to_numpy()
+
+        X = np.c_[np.ones((X.shape[0],1)), X]
+        
+        predictions = self.sigmoid(np.matmul(X,self.theta))
+        for i in range(predictions.shape[0]):
+            if predictions[i] >= 0.5:
+                predictions[i] = 1
+            elif predictions[i]< 0.5:
+                predictions[i]  = 0
+        return pd.DataFrame(predictions)
+            
 
     def predict_proba(self, X):
         '''
@@ -94,12 +181,18 @@ class LogisticRegression:
             Standardization should be optionally done before predict_proba() is called.
         '''
 
+        # for i in range(X.shape[0]):
+        #     X.iloc[:,1] = X.iloc[:,i].apply(lambda x : (x-self.mu_J[i])/self.s[i])
+        X = X.to_numpy()
+
+        X = np.c_[np.ones((X.shape[0],1)), X]
+        return pd.DataFrame(np.matmul(X,self.theta))
+
 
 
     def sigmoid(self, Z):
-    	'''
-    	Computes the sigmoid function 1/(1+exp(-z))
-    	'''
+
+        return 1/(1+np.exp(-Z))
 
 
 # # Test Logistic Regression 1
@@ -166,8 +259,8 @@ def test_logreg1():
     
     plt.show()
 
-test_logreg1()
 
+# 
 
 # # Map Feature
 
@@ -188,6 +281,20 @@ def mapFeature(X, column1, column2, maxPower = 6):
     Returns:
         an n-by-d2 Pandas data frame, where each row represents the original features augmented with the new features of the corresponding instance
     '''
+    total_Degrees = np.array([i for i in range(maxPower+2)]).sum()-1
+    map_Array = np.zeros((X.shape[0],total_Degrees))
+    counter =0
+    for i in range(1,maxPower+1):
+        for j in range(0,i+1):
+            map_Array[:,counter] = X.iloc[:,1]**(j) * X.iloc[:,0]**(i-j)
+            counter +=1
+
+
+            
+    mapFeature = pd.DataFrame(map_Array)
+
+    return(mapFeature)
+            
 
 
 # # Test Logistic Regression 2
@@ -222,7 +329,7 @@ def test_logreg2():
     Xaug = pd.DataFrame(standardizer.fit_transform(Xaug))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegression(regLambda = 0.00000001, regNorm=2)
+    logregModel = LogisticRegressionAdagrad(regLambda = 0.00000001, regNorm=2)
     logregModel.fit(Xaug,y)
     
     # Plot the decision boundary
@@ -263,7 +370,7 @@ def test_logreg2():
 
     print(str(Z.min()) + " " + str(Z.max()))
 
-test_logreg2()
+
 
 
 # # Logistic Regression with Adagrad
@@ -284,7 +391,12 @@ class LogisticRegressionAdagrad:
         	maxNumIters is the maximum number of iterations to run
           initTheta is the initial theta value. This is an optional argument
         '''
-
+        self.regLambda = regLambda
+        self.alpha = alpha 
+        self.regNorm = regNorm
+        self.epsilon = epsilon
+        self.maxNumIters = maxNumIters
+        self.initTheta = initTheta
     
 
     def computeCost(self, theta, X, y, regLambda):
@@ -297,7 +409,12 @@ class LogisticRegressionAdagrad:
         Returns:
             a scalar value of the cost  ** make certain you're not returning a 1 x 1 matrix! **
         '''
-
+        y = y.flatten()
+        hypo = self.sigmoid(np.matmul(X,theta))
+        cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda*(abs(theta[1:]**self.regNorm).sum())**(1/self.regNorm)
+        
+        return cost 
+    
     
     
     def computeGradient(self, theta, X, y, regLambda):
@@ -310,6 +427,35 @@ class LogisticRegressionAdagrad:
         Returns:
             the gradient, an d-dimensional vector
         '''
+        y = y.flatten()
+        last_theta = np.zeros(X.shape[1])
+
+
+        for runs in range(self.maxNumIters):
+            self.alpha =0.1/(10+runs)
+            combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
+            np.random.shuffle(combined)
+            X,y = combined[:,:-1],combined[:,-1]
+            # self.alpha = 0.1/(runs + 10)
+            for i in range(X.shape[0]):
+
+                hypo = self.sigmoid(np.inner(X[i,:],theta))
+                for j in range(X.shape[1]):
+                    if j== 0:
+                        theta[j] = theta[j]-self.alpha*(hypo-y[i])
+                    else:
+                        theta[j] = theta[j]*(1-self.alpha*self.regLambda)-self.alpha*(hypo-y[i])*X[i,j]
+            print(np.linalg.norm(theta-last_theta))
+            if np.linalg.norm(theta- last_theta) < self.epsilon:
+                break
+            else:
+                last_theta = theta.copy()
+
+            
+        return theta
+                
+                
+        
     
 
 
@@ -323,6 +469,14 @@ class LogisticRegressionAdagrad:
             Don't assume that X contains the x_i0 = 1 constant feature.
             Standardization should be optionally done before fit() is called.
         '''
+        X = X.to_numpy()
+        X = np.c_[np.ones((X.shape[0],1)), X] #Add a column of one as bias
+        y = y.to_numpy().flatten()
+        
+        if self.initTheta is None:
+            self.initTheta = np.zeros(X.shape[1])
+        
+        self.theta = self.computeGradient(self.initTheta,X,y,self.regLambda)   
 
 
     def predict(self, X):
@@ -336,6 +490,17 @@ class LogisticRegressionAdagrad:
             Don't assume that X contains the x_i0 = 1 constant feature.
             Standardization should be optionally done before predict() is called.
         '''
+        X = X.to_numpy()
+
+        X = np.c_[np.ones((X.shape[0],1)), X]
+        
+        predictions = self.sigmoid(np.matmul(X,self.theta))
+        for i in range(predictions.shape[0]):
+            if predictions[i] >= 0.5:
+                predictions[i] = 1
+            elif predictions[i]< 0.5:
+                predictions[i]  = 0
+        return pd.DataFrame(predictions)
 
     def predict_proba(self, X):
         '''
@@ -349,10 +514,14 @@ class LogisticRegressionAdagrad:
             Standardization should be optionally done before predict_proba() is called.
         '''
 
+        X = X.to_numpy()
 
+        X = np.c_[np.ones((X.shape[0],1)), X]
+        return pd.DataFrame(np.matmul(X,self.theta))
 
     def sigmoid(self, Z):
-    	'''
-    	Computes the sigmoid function 1/(1+exp(-z))
-    	'''
 
+        return 1/(1+np.exp(-Z))
+
+test_logreg1()
+test_logreg2()
