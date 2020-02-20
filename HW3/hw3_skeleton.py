@@ -97,7 +97,7 @@ class LogisticRegression:
                         theta[j] = theta[j] - self.alpha*((hypo - y).sum())
                     else:
                         if theta[j]>= 0 :
-                            theta[j] = theta[j] - self.alpha * ((hypo-y)*X[:,j]).sum() - self.alpha*self.regLambda
+                            theta[j] = theta[j] - self.alpha * ((hypo-y)*X[:,j]).sum() 
                         elif theta[j] <0:
                             theta[j] = theta[j] - self.alpha * ((hypo-y)*X[:,j]).sum() + self.alpha*self.regLambda
                     
@@ -225,7 +225,7 @@ def test_logreg1():
     Xstandardized = pd.DataFrame(standardizer.fit_transform(X))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegression(regLambda = 0.00000001)
+    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9,regNorm = 2)
     logregModel.fit(Xstandardized,y)
     
     # Plot the decision boundary
@@ -329,7 +329,7 @@ def test_logreg2():
     Xaug = pd.DataFrame(standardizer.fit_transform(Xaug))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegressionAdagrad(regLambda = 0.00000001, regNorm=2)
+    logregModel = LogisticRegression(regLambda = 0.00000001, regNorm=2)
     logregModel.fit(Xaug,y)
     
     # Plot the decision boundary
@@ -380,7 +380,7 @@ def test_logreg2():
 
 class LogisticRegressionAdagrad:
 
-    def __init__(self, alpha = 0.01, regLambda=0.01, regNorm=2, epsilon=0.0001, maxNumIters = 10000, initTheta = None):
+    def __init__(self, alpha = 0.01, regLambda=0.01, regNorm=2, epsilon=0.00001, maxNumIters = 10000, initTheta = None):
         '''
         Constructor
         Arguments:
@@ -429,24 +429,28 @@ class LogisticRegressionAdagrad:
         '''
         y = y.flatten()
         last_theta = np.zeros(X.shape[1])
-
+        G = np.zeros(X.shape[1])
+        alphas = np.zeros(X.shape[1])
 
         for runs in range(self.maxNumIters):
-            self.alpha =0.1/(10+runs)
             combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
             np.random.shuffle(combined)
             X,y = combined[:,:-1],combined[:,-1]
             # self.alpha = 0.1/(runs + 10)
-            for i in range(X.shape[0]):
+            for i in range(20):
 
                 hypo = self.sigmoid(np.inner(X[i,:],theta))
                 for j in range(X.shape[1]):
+                    # print(G[j])
+                    G[j]+=(( hypo-y[i])*X[i,j])**2
+                    alphas[j] = self.alpha/np.sqrt(G[j])
                     if j== 0:
-                        theta[j] = theta[j]-self.alpha*(hypo-y[i])
+                        theta[j] = theta[j]-alphas[j]*(hypo-y[i])
+
                     else:
-                        theta[j] = theta[j]*(1-self.alpha*self.regLambda)-self.alpha*(hypo-y[i])*X[i,j]
-            print(np.linalg.norm(theta-last_theta))
-            if np.linalg.norm(theta- last_theta) < self.epsilon:
+                        theta[j] = theta[j]*(1-alphas[j]*self.regLambda)-alphas[j]*(hypo-y[i])*X[i,j]
+            # print(np.linalg.norm(theta-last_theta))
+            if np.linalg.norm(theta - last_theta) < self.epsilon:
                 break
             else:
                 last_theta = theta.copy()
@@ -517,7 +521,7 @@ class LogisticRegressionAdagrad:
         X = X.to_numpy()
 
         X = np.c_[np.ones((X.shape[0],1)), X]
-        return pd.DataFrame(np.matmul(X,self.theta))
+        return pd.DataFrame(self.sigmoid(np.matmul(X,self.theta)))
 
     def sigmoid(self, Z):
 
@@ -525,3 +529,17 @@ class LogisticRegressionAdagrad:
 
 test_logreg1()
 test_logreg2()
+
+
+def learningCurve(RegressionMethod):
+    return None
+
+
+def comparingRegression():
+    df = pd.read_csv('hw3-diabetes.csv',header = None)
+    print('Percentage of instances with missing features:')
+    print(df.isnull().sum(axis=0)/df.shape[0])
+    print()
+    print('Class information:')
+    print(df.iloc[:,df.shape[1]-1].value_counts())
+    
