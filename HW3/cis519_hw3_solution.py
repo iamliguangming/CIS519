@@ -49,9 +49,13 @@ class LogisticRegression:
         Returns:
             a scalar value of the cost  ** make certain you're not returning a 1 x 1 matrix! **
         '''
-        y = y.flatten()
+        y = y.reshape(-1)
         hypo = self.sigmoid(np.matmul(X,theta))
-        cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda*np.linalg.norm(theta[1:]).sum()
+        
+        if self.regNorm == 2:
+            cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda*np.linalg.norm(theta[1:])**2  
+        elif self.regNorm ==1:
+            cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda * abs(theta[1:]).sum()
         
         return cost 
     
@@ -68,67 +72,48 @@ class LogisticRegression:
         
         '''
         
-        y = y.flatten()
-            
-        last_theta = np.zeros(X.shape[1])
+        # y = y.flatten()
+        y = y.reshape(-1)
         
+        hypo = self.sigmoid(X@theta).reshape(len(y),1)
         if self.regNorm ==2:
-            for i in range(self.maxNumIters):
-                hypo = self.sigmoid(X @theta)
-                for j in range(X.shape[1]):
-                    if j ==0 :
-                        theta[j] = theta[j] - self.alpha*((hypo - y).sum())
-                    else:
-                        theta[j] = theta[j]*(1-self.alpha*self.regLambda) - self.alpha * ((hypo-y)*X[:,j]).sum()
-                    
-                # print(np.linalg.norm(theta - last_theta))
-                                
-                if np.linalg.norm(theta - last_theta) < self.epsilon:
-                    break
-                else:
-                    last_theta = theta.copy()
-                    
-        elif self.regNorm ==1:
+            regulated =  ((hypo-y.reshape(len(y),1))*X).sum(axis=0) + regLambda*self.theta
+            regulated[0] = regulated[0] - regLambda * theta[0]
+            return regulated
+        elif self.regNorm == 1:
+            regulated =  ((hypo-y.reshape(len(y),1))*X).sum(axis=0) + regLambda*np.sign(self.theta)
+            regulated[0] = regulated[0] - regLambda*np.sign(theta[0])
+            return regulated
+         
             
-            for i in range(self.maxNumIters):
-                hypo = self.sigmoid(X @theta)
-                for j in range(X.shape[1]):
-                    if j ==0 :
-                        theta[j] = theta[j] - self.alpha*((hypo - y).sum())
-                    else:
-                        if theta[j]>= 0 :
-                            theta[j] = theta[j] - self.alpha * ((hypo-y)*X[:,j]).sum() 
-                        elif theta[j] <0:
-                            theta[j] = theta[j] - self.alpha * ((hypo-y)*X[:,j]).sum() + self.alpha*self.regLambda
-                    
-                # print(np.linalg.norm(theta - last_theta))
-                                
-                if np.linalg.norm(theta - last_theta) < self.epsilon:
-                    break
-                else:
-                    last_theta = theta.copy()
-                
 
-        return theta
+                
                 
 
 
     def fit(self, X, y):
         
-        # self.mu_J = []
-        # self.s = []
-        # for i in range(X.shape[1]):
-        #     # self.mu_J.append(X.iloc[:,i].mean())
-        #     # self.s.append(X.iloc[:,i].std())
-        #     X.iloc[:,i]= X.iloc[:,i].apply(lambda x : (x-self.mu_J[i])/self.s[i])
         X = X.to_numpy()
         X = np.c_[np.ones((X.shape[0],1)), X] #Add a column of one as bias
         y = y.to_numpy().flatten()
         
         if self.initTheta is None:
             self.initTheta = np.zeros(X.shape[1])
+            
+        self.theta = self.initTheta.copy()
         
-        self.theta = self.computeGradient(self.initTheta,X,y,self.regLambda)   
+        last_theta = np.zeros(X.shape[1])
+
+        for i in range(self.maxNumIters):
+            self.theta = self.theta - self.alpha *self.computeGradient(self.theta, X, y, self.regLambda)
+            # print(theta)
+            # print(last_theta)
+            if np.linalg.norm(self.theta - last_theta) < self.epsilon:
+                break
+            else:
+                last_theta = self.theta.copy()
+        
+        return None
 
         
         
@@ -225,7 +210,7 @@ def test_logreg1():
     Xstandardized = pd.DataFrame(standardizer.fit_transform(X))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9,regNorm = 2)
+    logregModel = LogisticRegression(regLambda = 50,regNorm = 2)
     logregModel.fit(Xstandardized,y)
     
     # Plot the decision boundary
@@ -329,7 +314,7 @@ def test_logreg2():
     Xaug = pd.DataFrame(standardizer.fit_transform(Xaug))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegression(regLambda = 0.00000001, regNorm=2)
+    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9, regNorm=2)
     logregModel.fit(Xaug,y)
     
     # Plot the decision boundary
@@ -409,11 +394,16 @@ class LogisticRegressionAdagrad:
         Returns:
             a scalar value of the cost  ** make certain you're not returning a 1 x 1 matrix! **
         '''
-        y = y.flatten()
+        y = y.reshape(-1)
         hypo = self.sigmoid(np.matmul(X,theta))
-        cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda*(abs(theta[1:]**self.regNorm).sum())**(1/self.regNorm)
+        
+        if self.regNorm == 2:
+            cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda*np.linalg.norm(theta[1:])**2  
+        elif self.regNorm ==1:
+            cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda * abs(theta[1:]).sum()
         
         return cost 
+    
     
     
     
@@ -427,37 +417,49 @@ class LogisticRegressionAdagrad:
         Returns:
             the gradient, an d-dimensional vector
         '''
-        y = y.flatten()
-        last_theta = np.zeros(X.shape[1])
-        G = np.zeros(X.shape[1])
-        alphas = np.zeros(X.shape[1])
+        # y = y.flatten()
+        
+        # last_theta = np.zeros(X.shape[1])
+        # G = np.zeros(X.shape[1])
+        # alphas = np.zeros(X.shape[1])
 
-        for runs in range(self.maxNumIters):
-            combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
-            np.random.shuffle(combined)
-            X,y = combined[:,:-1],combined[:,-1]
-            # self.alpha = 0.1/(runs + 10)
-            for i in range(20):
+        # for runs in range(self.maxNumIters):
+        #     combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
+        #     np.random.shuffle(combined)
+        #     X,y = combined[:,:-1],combined[:,-1]
+        #     # self.alpha = 0.1/(runs + 10)
+        #     for i in range(20):
 
-                hypo = self.sigmoid(np.inner(X[i,:],theta))
-                for j in range(X.shape[1]):
-                    # print(G[j])
-                    G[j]+=(( hypo-y[i])*X[i,j])**2
-                    alphas[j] = self.alpha/np.sqrt(G[j])
-                    if j== 0:
-                        theta[j] = theta[j]-alphas[j]*(hypo-y[i])
+        #         hypo = self.sigmoid(np.inner(X[i,:],theta))
+        #         for j in range(X.shape[1]):
+        #             # print(G[j])
+        #             G[j]+=(( hypo-y[i])*X[i,j])**2
+        #             alphas[j] = self.alpha/np.sqrt(G[j])
+        #             if j== 0:
+        #                 theta[j] = theta[j]-alphas[j]*(hypo-y[i])
 
-                    else:
-                        theta[j] = theta[j]*(1-alphas[j]*self.regLambda)-alphas[j]*(hypo-y[i])*X[i,j]
-            # print(np.linalg.norm(theta-last_theta))
-            if np.linalg.norm(theta - last_theta) < self.epsilon:
-                break
-            else:
-                last_theta = theta.copy()
+        #             else:
+        #                 theta[j] = theta[j]*(1-alphas[j]*self.regLambda)-alphas[j]*(hypo-y[i])*X[i,j]
+        #     # print(np.linalg.norm(theta-last_theta))
+        #     if np.linalg.norm(theta - last_theta) < self.epsilon:
+        #         break
+        #     else:
+        #         last_theta = theta.copy()
 
             
-        return theta
-                
+        # return theta
+        y = y.reshape(-1)
+    
+        hypo = self.sigmoid(X@theta)
+        if self.regNorm ==2:
+            regulated =  ((hypo-y)*X) + regLambda*self.theta
+            regulated[0] = regulated[0] - regLambda * theta[0]
+            return regulated
+        elif self.regNorm == 1:
+            regulated =  (hypo-y)*X + regLambda*np.sign(self.theta)
+            regulated[0] = regulated[0] - regLambda*np.sign(theta[0])
+            return regulated
+         
                 
         
     
@@ -477,10 +479,27 @@ class LogisticRegressionAdagrad:
         X = np.c_[np.ones((X.shape[0],1)), X] #Add a column of one as bias
         y = y.to_numpy().flatten()
         
+        combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
+        np.random.shuffle(combined)
+        X,y = combined[:,:-1],combined[:,-1]
+
+        
+        # last_theta = np.zeros(X.shape[1])
+        # G = np.zeros(X.shape[1])
+        # alphas = np.zeros(X.shape[1])
+        
         if self.initTheta is None:
             self.initTheta = np.zeros(X.shape[1])
+            
+        self.theta  = self.initTheta.copy()
+            
+            
+        for runs in range(1000):
+            for i in range(X.shape[0]):
+                self.theta = self.theta - self.alpha*self.computeGradient(self.theta, X[i,:], y[i], self.regLambda)
+                
         
-        self.theta = self.computeGradient(self.initTheta,X,y,self.regLambda)   
+  
 
 
     def predict(self, X):
@@ -527,8 +546,8 @@ class LogisticRegressionAdagrad:
 
         return 1/(1+np.exp(-Z))
 
-test_logreg1()
-test_logreg2()
+# test_logreg1()
+# test_logreg2()
 
 
 def learningCurve(RegressionMethod):
