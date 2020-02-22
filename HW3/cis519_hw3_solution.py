@@ -61,62 +61,40 @@ class LogisticRegression:
     
     
     def computeGradient(self, theta, X, y, regLambda):
-        '''
-        Computes the gradient of the objective function
-        Arguments:
-            X is a n-by-d numpy matrix
-            y is an n-by-1 numpy matrix
-            regLambda is the scalar regularization constant
-        Returns:
-            the gradient, an d-dimensional vector
-        
-        '''
-        
-        # y = y.flatten()
-        y = y.reshape(-1)
-        
+        theta = np.asarray(theta).reshape(-1)
+        X = np.asarray(X)
+        y = np.asarray(y).reshape(-1)
         hypo = self.sigmoid(X@theta).reshape(len(y),1)
         if self.regNorm ==2:
-            regulated =  ((hypo-y.reshape(len(y),1))*X).sum(axis=0) + regLambda*self.theta
+            regulated =  ((hypo-y.reshape(len(y),1))*X).sum(axis=0) + regLambda*theta
             regulated[0] = regulated[0] - regLambda * theta[0]
-            return regulated
+            return np.asarray(regulated).reshape(-1)
         elif self.regNorm == 1:
-            regulated =  ((hypo-y.reshape(len(y),1))*X).sum(axis=0) + regLambda*np.sign(self.theta)
+            regulated =  ((hypo-y.reshape(len(y),1))*X).sum(axis=0) + regLambda*np.sign(theta)
             regulated[0] = regulated[0] - regLambda*np.sign(theta[0])
-            return regulated
-         
-            
-
-                
+            return np.asarray(regulated).reshape(-1)
                 
 
 
     def fit(self, X, y):
-        
         X = X.to_numpy()
         X = np.c_[np.ones((X.shape[0],1)), X] #Add a column of one as bias
-        y = y.to_numpy().flatten()
+        y = y.to_numpy()
         
         if self.initTheta is None:
             self.initTheta = np.zeros(X.shape[1])
-            
-        self.theta = self.initTheta.copy()
         
+        self.theta = np.asarray(self.initTheta.copy()).reshape(-1)
+        print(self.theta)
         last_theta = np.zeros(X.shape[1])
-
         for i in range(self.maxNumIters):
             self.theta = self.theta - self.alpha *self.computeGradient(self.theta, X, y, self.regLambda)
-            # print(theta)
-            # print(last_theta)
             if np.linalg.norm(self.theta - last_theta) < self.epsilon:
                 break
             else:
                 last_theta = self.theta.copy()
-        
-        return None
-
-        
-        
+        print('I ran through fit')
+        return 
         '''
         Trains the model
         Arguments:
@@ -141,8 +119,9 @@ class LogisticRegression:
         '''
         # for i in range(X.shape[0]):
         #     X.iloc[:,1] = X.iloc[:,i].apply(lambda x : (x-self.mu_J[i])/self.s[i])
+        print('Im in predict')
+        X = pd.DataFrame(X)
         X = X.to_numpy()
-
         X = np.c_[np.ones((X.shape[0],1)), X]
         
         predictions = self.sigmoid(np.matmul(X,self.theta))
@@ -151,16 +130,15 @@ class LogisticRegression:
                 predictions[i] = 1
             elif predictions[i]< 0.5:
                 predictions[i]  = 0
+                
         return pd.DataFrame(predictions)
-            
-
     def predict_proba(self, X):
         '''
         Used the model to predict the class probability for each instance in X
         Arguments:
             X is a n-by-d Pandas data frame
         Returns:
-            an n-by-1 Pandas data frame of the class probabilities
+                an n-by-1 Pandas data frame of the class probabilities
         Note:
             Don't assume that X contains the x_i0 = 1 constant feature.
             Standardization should be optionally done before predict_proba() is called.
@@ -210,7 +188,7 @@ def test_logreg1():
     Xstandardized = pd.DataFrame(standardizer.fit_transform(X))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegression(regLambda = 50,regNorm = 2)
+    logregModel = LogisticRegression(regLambda = 1,regNorm = 1)
     logregModel.fit(Xstandardized,y)
     
     # Plot the decision boundary
@@ -314,7 +292,7 @@ def test_logreg2():
     Xaug = pd.DataFrame(standardizer.fit_transform(Xaug))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9, regNorm=2)
+    logregModel = LogisticRegression(regLambda = 1E-9, regNorm=1)
     logregModel.fit(Xaug,y)
     
     # Plot the decision boundary
@@ -398,9 +376,9 @@ class LogisticRegressionAdagrad:
         hypo = self.sigmoid(np.matmul(X,theta))
         
         if self.regNorm == 2:
-            cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda*np.linalg.norm(theta[1:])**2  
+            cost = -(y*np.log(hypo)+(1-y)*np.log(1-hypo)).sum()+regLambda*np.linalg.norm(theta[1:])**2  
         elif self.regNorm ==1:
-            cost = -(y*np.log(hypo) + (1-y)*np.log(1-hypo)).sum() + regLambda * abs(theta[1:]).sum()
+            cost = -(y*np.log(hypo)+(1-y)*np.log(1-hypo)).sum()+regLambda * abs(theta[1:]).sum()
         
         return cost 
     
@@ -452,12 +430,16 @@ class LogisticRegressionAdagrad:
     
         hypo = self.sigmoid(X@theta)
         if self.regNorm ==2:
-            regulated =  ((hypo-y)*X) + regLambda*self.theta
+            regulated =  ((hypo-y)*X) + regLambda*theta
             regulated[0] = regulated[0] - regLambda * theta[0]
+            self.G += regulated **2 
+            self.alpha_set = self.alpha/np.sqrt(self.G)
             return regulated
         elif self.regNorm == 1:
-            regulated =  (hypo-y)*X + regLambda*np.sign(self.theta)
+            regulated =  (hypo-y)*X + regLambda*np.sign(theta)
             regulated[0] = regulated[0] - regLambda*np.sign(theta[0])
+            self.G += regulated **2
+            self.alpha_set = self.alpha/np.sqrt(self.G)
             return regulated
          
                 
@@ -466,6 +448,7 @@ class LogisticRegressionAdagrad:
 
 
     def fit(self, X, y):
+
         '''
         Trains the model
         Arguments:
@@ -475,9 +458,14 @@ class LogisticRegressionAdagrad:
             Don't assume that X contains the x_i0 = 1 constant feature.
             Standardization should be optionally done before fit() is called.
         '''
+        print('Im in fit')
         X = X.to_numpy()
         X = np.c_[np.ones((X.shape[0],1)), X] #Add a column of one as bias
+        y = pd.DataFrame(y)
         y = y.to_numpy().flatten()
+        
+        self.G = np.zeros(X.shape[1])
+        self.alpha_set = np.zeros(X.shape[1])
         
         combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
         np.random.shuffle(combined)
@@ -490,13 +478,10 @@ class LogisticRegressionAdagrad:
         
         if self.initTheta is None:
             self.initTheta = np.zeros(X.shape[1])
-            
-        self.theta  = self.initTheta.copy()
-            
-            
-        for runs in range(1000):
+        self.theta = np.asarray(self.initTheta.copy()).reshape(-1)                  
+        for runs in range(self.maxNumIters):
             for i in range(X.shape[0]):
-                self.theta = self.theta - self.alpha*self.computeGradient(self.theta, X[i,:], y[i], self.regLambda)
+                self.theta = self.theta - self.alpha_set*self.computeGradient(self.theta, X[i,:], y[i], self.regLambda)
                 
         
   
