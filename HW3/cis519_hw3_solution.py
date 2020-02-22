@@ -188,7 +188,7 @@ def test_logreg1():
     Xstandardized = pd.DataFrame(standardizer.fit_transform(X))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegression(regLambda = 1,regNorm = 1)
+    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9,regNorm = 2,maxNumIters = 10)
     logregModel.fit(Xstandardized,y)
     
     # Plot the decision boundary
@@ -292,7 +292,7 @@ def test_logreg2():
     Xaug = pd.DataFrame(standardizer.fit_transform(Xaug))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegression(regLambda = 1E-9, regNorm=1)
+    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9, regNorm=2,maxNumIters=1)
     logregModel.fit(Xaug,y)
     
     # Plot the decision boundary
@@ -433,13 +433,13 @@ class LogisticRegressionAdagrad:
             regulated =  ((hypo-y)*X) + regLambda*theta
             regulated[0] = regulated[0] - regLambda * theta[0]
             self.G += regulated **2 
-            self.alpha_set = self.alpha/np.sqrt(self.G)
+            self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
             return regulated
         elif self.regNorm == 1:
             regulated =  (hypo-y)*X + regLambda*np.sign(theta)
             regulated[0] = regulated[0] - regLambda*np.sign(theta[0])
             self.G += regulated **2
-            self.alpha_set = self.alpha/np.sqrt(self.G)
+            self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
             return regulated
          
                 
@@ -458,7 +458,6 @@ class LogisticRegressionAdagrad:
             Don't assume that X contains the x_i0 = 1 constant feature.
             Standardization should be optionally done before fit() is called.
         '''
-        print('Im in fit')
         X = X.to_numpy()
         X = np.c_[np.ones((X.shape[0],1)), X] #Add a column of one as bias
         y = pd.DataFrame(y)
@@ -530,10 +529,10 @@ class LogisticRegressionAdagrad:
     def sigmoid(self, Z):
 
         return 1/(1+np.exp(-Z))
-
+#
 # test_logreg1()
 # test_logreg2()
-
+# 
 
 def learningCurve(RegressionMethod):
     return None
