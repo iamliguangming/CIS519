@@ -188,7 +188,7 @@ def test_logreg1():
     Xstandardized = pd.DataFrame(standardizer.fit_transform(X))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9,regNorm = 2,maxNumIters = 10)
+    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9,regNorm = 2,maxNumIters = 2000)
     logregModel.fit(Xstandardized,y)
     
     # Plot the decision boundary
@@ -292,7 +292,7 @@ def test_logreg2():
     Xaug = pd.DataFrame(standardizer.fit_transform(Xaug))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9, regNorm=2,maxNumIters=1)
+    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9, regNorm=2,maxNumIters=10)
     logregModel.fit(Xaug,y)
     
     # Plot the decision boundary
@@ -395,53 +395,37 @@ class LogisticRegressionAdagrad:
         Returns:
             the gradient, an d-dimensional vector
         '''
-        # y = y.flatten()
+
+        # y = y.reshape(-1)
+        # hypo = self.sigmoid(X@theta)
+        # if self.regNorm ==2:  
+        #     gradient =  ((hypo-y)*X) + regLambda*theta
+        #     gradient[0] = gradient[0] - regLambda * theta[0]
+        #     # self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
+
+        #     return gradient
+        # elif self.regNorm == 1:
+
+        #     gradient =  (hypo-y)*X + regLambda*np.sign(theta)
+        #     gradient[0] = gradient[0] - regLambda*np.sign(theta[0])
+        #     # self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
+        #     return gradient
+
+        d = len(X)
+        Z = X @ theta
+        h = np.asscalar(self.sigmoid(Z))
         
-        # last_theta = np.zeros(X.shape[1])
-        # G = np.zeros(X.shape[1])
-        # alphas = np.zeros(X.shape[1])
-
-        # for runs in range(self.maxNumIters):
-        #     combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
-        #     np.random.shuffle(combined)
-        #     X,y = combined[:,:-1],combined[:,-1]
-        #     # self.alpha = 0.1/(runs + 10)
-        #     for i in range(20):
-
-        #         hypo = self.sigmoid(np.inner(X[i,:],theta))
-        #         for j in range(X.shape[1]):
-        #             # print(G[j])
-        #             G[j]+=(( hypo-y[i])*X[i,j])**2
-        #             alphas[j] = self.alpha/np.sqrt(G[j])
-        #             if j== 0:
-        #                 theta[j] = theta[j]-alphas[j]*(hypo-y[i])
-
-        #             else:
-        #                 theta[j] = theta[j]*(1-alphas[j]*self.regLambda)-alphas[j]*(hypo-y[i])*X[i,j]
-        #     # print(np.linalg.norm(theta-last_theta))
-        #     if np.linalg.norm(theta - last_theta) < self.epsilon:
-        #         break
-        #     else:
-        #         last_theta = theta.copy()
-
+        gradient = np.zeros(d)
+        if self.regNorm ==1:
+            gradient = X*(h-y)
+            gradient[1:] = gradient[1:]+regLambda
             
-        # return theta
-        y = y.reshape(-1)
-    
-        hypo = self.sigmoid(X@theta)
-        if self.regNorm ==2:
-            regulated =  ((hypo-y)*X) + regLambda*theta
-            regulated[0] = regulated[0] - regLambda * theta[0]
-            self.G += regulated **2 
-            self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
-            return regulated
-        elif self.regNorm == 1:
-            regulated =  (hypo-y)*X + regLambda*np.sign(theta)
-            regulated[0] = regulated[0] - regLambda*np.sign(theta[0])
-            self.G += regulated **2
-            self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
-            return regulated
-         
+        else:
+            gradient = X*(h-y)
+            gradient[1:] = gradient[1:]+regLambda*theta[1:]
+
+        gradient = np.array(gradient) 
+        return gradient           
                 
         
     
@@ -457,32 +441,42 @@ class LogisticRegressionAdagrad:
         Note:
             Don't assume that X contains the x_i0 = 1 constant feature.
             Standardization should be optionally done before fit() is called.
-        '''
+        # '''
+        # standardizer = StandardScaler()
+        # X = pd.DataFrame(standardizer.fit_transform(X))
         X = X.to_numpy()
         X = np.c_[np.ones((X.shape[0],1)), X] #Add a column of one as bias
         y = pd.DataFrame(y)
         y = y.to_numpy().flatten()
-        
+        self.alpha_set  = np.zeros(X.shape[1])
         self.G = np.zeros(X.shape[1])
-        self.alpha_set = np.zeros(X.shape[1])
-        
-        combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
-        np.random.shuffle(combined)
-        X,y = combined[:,:-1],combined[:,-1]
 
-        
-        # last_theta = np.zeros(X.shape[1])
-        # G = np.zeros(X.shape[1])
-        # alphas = np.zeros(X.shape[1])
-        
         if self.initTheta is None:
             self.initTheta = np.zeros(X.shape[1])
-        self.theta = np.asarray(self.initTheta.copy()).reshape(-1)                  
+            
+        self.theta = np.asarray(self.initTheta.copy()).reshape(-1)   
+        gradient = np.zeros(X.shape[1])
+        combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
+        np.random.shuffle(combined)
+        X,y = combined[:,:-1],combined[:,-1]             
         for runs in range(self.maxNumIters):
             for i in range(X.shape[0]):
-                self.theta = self.theta - self.alpha_set*self.computeGradient(self.theta, X[i,:], y[i], self.regLambda)
-                
+                gradient = self.computeGradient(self.theta,X[i,:],y[i],self.regLambda)
+                self.G += np.square(gradient)
+            self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
+            self.theta = self.theta - self.alpha_set*gradient
+        self.theta = self.theta.reshape(len(self.theta),1)
+        # for runs in range(self.maxNumIters):
+        #     for i in range(len(y)):
+        #         gradient = self.computeGradient(self.theta, X[i,:], y[i], self.regLambda)
+        #         self.G += np.square(gradient)
+        #     self.alpha_set = np.divide(self.alpha,(np.sqrt(self.G)+1E-7))
+        #     self.theta = self.theta - np.multiply(gradient,self.alpha_set)
         
+                
+                    
+                
+        return None
   
 
 
@@ -500,6 +494,8 @@ class LogisticRegressionAdagrad:
         X = X.to_numpy()
 
         X = np.c_[np.ones((X.shape[0],1)), X]
+        
+        self.theta = self.theta.reshape(-1)
         
         predictions = self.sigmoid(np.matmul(X,self.theta))
         for i in range(predictions.shape[0]):
@@ -522,6 +518,7 @@ class LogisticRegressionAdagrad:
         '''
 
         X = X.to_numpy()
+        self.theta = self.theta.reshape(-1)
 
         X = np.c_[np.ones((X.shape[0],1)), X]
         return pd.DataFrame(self.sigmoid(np.matmul(X,self.theta)))
@@ -532,7 +529,7 @@ class LogisticRegressionAdagrad:
 #
 # test_logreg1()
 # test_logreg2()
-# 
+
 
 def learningCurve(RegressionMethod):
     return None
@@ -545,4 +542,23 @@ def comparingRegression():
     print()
     print('Class information:')
     print(df.iloc[:,df.shape[1]-1].value_counts())
+    for i in range(df.shape[0]):
+        if df.iloc[i,-1] ==  'test_positive':
+            df.iloc[i,-1] = 1
+        elif df.iloc[i,-1] == 'test_negative':
+            df.iloc[i,-1] = 0
+    
+    
+    
+    
+def test():
+    X = pd.DataFrame(np.array([[1,4,2,3],[4,6,7,1],[2,3,1,5],[3,7,5,8]]))
+    y = pd.DataFrame(np.array([1,0,1,1]))
+    initial_theta = np.array([0.5,0.2,0.3,0.1,0.4])
+    model = LogisticRegressionAdagrad(regLambda = 1E-9, regNorm=2,maxNumIters=1,initTheta = initial_theta)
+    model.fit(X,y)
+    print(model.theta)
+# 
+# test()
+    
     
