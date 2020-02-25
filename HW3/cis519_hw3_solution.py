@@ -292,7 +292,7 @@ def test_logreg2():
     Xaug = pd.DataFrame(standardizer.fit_transform(Xaug))  # compute mean and stdev on training set for standardization
     
     # train logistic regression
-    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9, regNorm=2,maxNumIters=10)
+    logregModel = LogisticRegressionAdagrad(regLambda = 1E-9, regNorm=2,maxNumIters=100000)
     logregModel.fit(Xaug,y)
     
     # Plot the decision boundary
@@ -396,36 +396,36 @@ class LogisticRegressionAdagrad:
             the gradient, an d-dimensional vector
         '''
 
-        # y = y.reshape(-1)
-        # hypo = self.sigmoid(X@theta)
-        # if self.regNorm ==2:  
-        #     gradient =  ((hypo-y)*X) + regLambda*theta
-        #     gradient[0] = gradient[0] - regLambda * theta[0]
-        #     # self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
+        y = y.reshape(-1)
+        hypo = self.sigmoid(X@theta)
+        if self.regNorm ==2:  
+            gradient =  ((hypo-y)*X) + regLambda*theta
+            gradient[0] = gradient[0] - regLambda * theta[0]
+            # self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
 
-        #     return gradient
-        # elif self.regNorm == 1:
+            return gradient
+        elif self.regNorm == 1:
 
-        #     gradient =  (hypo-y)*X + regLambda*np.sign(theta)
-        #     gradient[0] = gradient[0] - regLambda*np.sign(theta[0])
-        #     # self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
-        #     return gradient
+            gradient =  (hypo-y)*X + regLambda*np.sign(theta)
+            gradient[0] = gradient[0] - regLambda*np.sign(theta[0])
+            # self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
+            return gradient
 
-        d = len(X)
-        Z = X @ theta
-        h = np.asscalar(self.sigmoid(Z))
+        # d = len(X)
+        # Z = X @ theta
+        # h = np.asscalar(self.sigmoid(Z))
         
-        gradient = np.zeros(d)
-        if self.regNorm ==1:
-            gradient = X*(h-y)
-            gradient[1:] = gradient[1:]+regLambda
+        # gradient = np.zeros(d)
+        # if self.regNorm ==1:
+        #     gradient = X*(h-y)
+        #     gradient[1:] = gradient[1:]+regLambda
             
-        else:
-            gradient = X*(h-y)
-            gradient[1:] = gradient[1:]+regLambda*theta[1:]
+        # else:
+        #     gradient = X*(h-y)
+        #     gradient[1:] = gradient[1:]+regLambda*theta[1:]
 
-        gradient = np.array(gradient) 
-        return gradient           
+        # gradient = np.array(gradient) 
+        # return gradient           
                 
         
     
@@ -459,12 +459,26 @@ class LogisticRegressionAdagrad:
         combined =  np.concatenate((X,y.reshape(len(y),1)),axis=1)
         np.random.shuffle(combined)
         X,y = combined[:,:-1],combined[:,-1]             
-        for runs in range(self.maxNumIters):
+        # for runs in range(self.maxNumIters):
+        iterations = 0
+        break_flag = False
+        last_theta = np.zeros(X.shape[1])
+        while True:
             for i in range(X.shape[0]):
                 gradient = self.computeGradient(self.theta,X[i,:],y[i],self.regLambda)
                 self.G += np.square(gradient)
-            self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
-            self.theta = self.theta - self.alpha_set*gradient
+                self.alpha_set = self.alpha/(np.sqrt(self.G)+1E-9)
+                self.theta = self.theta - self.alpha_set*gradient
+                iterations+=1
+                if iterations >= self.maxNumIters:
+                    break_flag = True
+                    break
+            if np.linalg.norm(self.theta - last_theta)<self.epsilon:
+                break
+            else:
+                last_theta = self.theta.copy()
+            if break_flag is True:
+                break
         self.theta = self.theta.reshape(len(self.theta),1)
         # for runs in range(self.maxNumIters):
         #     for i in range(len(y)):
@@ -560,5 +574,5 @@ def test():
     print(model.theta)
 # 
 # test()
-    
+    # 
     
