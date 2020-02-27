@@ -9,6 +9,7 @@
 
 import pandas as pd
 import numpy as np
+# from sklearn.preprocessing import StandardScaler
 
 
 # # Adaboost-SAMME
@@ -31,8 +32,10 @@ class BoostedDT:
         betas : List of beta values, in order of creation during boosting
         '''
 
-        self.clfs = None  # keep the class fields, and be sure to keep them updated during boosting
-        self.betas = None 
+        self.clfs = [None] * numBoostingIters  # keep the class fields, and be sure to keep them updated during boosting
+        self.betas = []
+        self.numBoostingIters = numBoostingIters
+        self.maxTreeDepth = maxTreeDepth
         
         #TODO
 
@@ -49,8 +52,26 @@ class BoostedDT:
             random_seed is an optional integer value
         '''
         #TODO
+        X = X.to_numpy()
+        backup_X = X.copy()
+        y = pd.DataFrame(y)
+        y = y.to_numpy().flatten()
+        np.place(y,y==0,-1)
+        K = len(set(y))
+        weights = np.full(X.shape[0],1/X.shape[0])
+        for t in range(self.numBoostingIters):
+            self.clfs[t] = tree.DecisionTreeClassifier(criterion="entropy", max_depth = self.maxTreeDepth)
+            self.clfs[t].fit(X,y,sample_weight = weights)
+            predicted_y = self.clfs[t].predict(X)
+            weighted_Error = ((predicted_y != y)*weights).sum()
+            beta = 1/2*(np.log((1-weighted_Error)/weighted_Error)+np.log(K-1))
+            self.betas.append(beta)
+            weights = weights * np.exp(-beta*y*predicted_y)
+            weights = 1/weights.sum() * weights 
 
-    
+        return None
+        
+            # weights = (weights - weights.mean)/weights.std()
 
     def predict(self, X):
         '''
@@ -59,8 +80,18 @@ class BoostedDT:
             X is an n-by-d Pandas Data Frame
         Returns:
             an n-by-1 Pandas Data Frame of the predictions
+            
         '''
         #TODO
+        X = X.to_numpy()
+        prediction = np.zeros(X.shape[0])
+        for t in range(self.numBoostingIters):
+            prediction += self.betas[t]*self.clfs[t].predict(X)
+        prediction =  np.sign(prediction)
+        np.place(prediction,prediction==-1,0)
+        return prediction
+            
+            
 
 
 # # Test BoostedDT

@@ -1,0 +1,56 @@
+\documentclass{article}
+\usepackage[letterpaper]{geometry}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{enumitem}
+
+\title{CIS 419/519: Homework 4}
+\author{\{Yupeng Li\}}
+\date{02.26.2020}
+
+\begin{document}
+    \maketitle
+    Although the solutions are entirely my own, I consulted with the following people and sources while working on this homework:
+    
+    \paragraph{PART1: PROBELM SET}
+
+    \section{Fitting an SVM by Hand}
+    From the feature vector $\phi(x) = [1, \sqrt{2} x, x^2]^T$
+    \\We can expand $x_1$ and $x_2$ into 3D space so that they are converted into vectors such that
+    \[x_1 = [1,0,0]^T ,  x_2 = [1,2,2]^T\]
+\\a.) Since the optimal vector $w$ is orthogonal to the decision boundary, it must be parallel to the vector connecting $x_1$ and $x_2$.\\
+The vector is then:
+\[[1,2,2]^T - [1,0,0]^T = [0,2,2]^T\]
+\\b.) The value of margin is then the L2 norm of the vector connecting $x_1$ and $x_2$
+\[margin = \sqrt{v_x^2 + v_y^2 + v_z^2} = \sqrt{0 + 4 +4} = 2\sqrt{2}\]
+\\c.) The L2 norm of vector $w$ can then be determined using the expression:
+\[d = \frac{2}{\|w\|_2}\]
+Thus, \[\|w\|_2 = \frac{2}{margin} = \frac{2}{2\sqrt{2}} = \frac{\sqrt{2}}{2}\] 
+\\We can then assume $w$ in the form of $[0,2i,2i]$ with $L_2$ norm of $\frac{\sqrt{2}}{2}$\\
+Thus we can get \[\sqrt{4i^2 + 4i^2} = (\frac{\sqrt{2}}{2})\]
+\[2\sqrt{2} i = \frac{\sqrt{2}}{2}\]
+\[2i = \frac{1}{2}\]
+Thus,\[ w = [0, \frac{1}{2},\frac{1}{2}]\]
+\\d.) From the fact that 
+\[y_1(w^T\phi(x_1) + w_0) \geq  1\]
+and \[y_2(w^T\phi(x_1) + w_0) \geq  1\]
+and \[y_1 = -1, y_2 = 1\]
+We know that \[(w^T\phi(x_1) + w_0) \leq  -1\]
+and \[(w^T\phi(x_2) + w_0) \geq  1\]
+Since $w^T \phi(x_1) = 0$, $w_0 \leq -1$ and since $w^T \phi(x_2) = 2, w_0 \geq 1-2$, Thus,
+\[-1 \leq w_0 \leq -1\]\[w_0 = -1\]
+\\e.) Thus the discriminant can be expressed as in the following equation:
+\begin{equation}
+h(x) = -1 + \frac{\sqrt{2}x}{2} + \frac{x^2}{2}
+\end{equation}
+
+   \section{Support Vectors}
+  	The size of the margin should either increase or stays the same for the dataset. This is because once you remove the support vector, the margin would either stay the same because of a support vector of same length or expand due to the shortest vector has been removed.
+
+        
+\end{document}
