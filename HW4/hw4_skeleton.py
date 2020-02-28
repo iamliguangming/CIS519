@@ -10,6 +10,7 @@
 import pandas as pd
 import numpy as np
 # from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 
 
 # # Adaboost-SAMME
@@ -56,17 +57,21 @@ class BoostedDT:
         backup_X = X.copy()
         y = pd.DataFrame(y)
         y = y.to_numpy().flatten()
-        np.place(y,y==0,-1)
-        K = len(set(y))
+        self.K = len(set(y))
+        self.labels = set(y)
+        # self.mean = np.array(list(set(y))).mean()
+        # y = y - self.mean
         weights = np.full(X.shape[0],1/X.shape[0])
         for t in range(self.numBoostingIters):
             self.clfs[t] = tree.DecisionTreeClassifier(criterion="entropy", max_depth = self.maxTreeDepth)
             self.clfs[t].fit(X,y,sample_weight = weights)
             predicted_y = self.clfs[t].predict(X)
             weighted_Error = ((predicted_y != y)*weights).sum()
-            beta = 1/2*(np.log((1-weighted_Error)/weighted_Error)+np.log(K-1))
+            beta = 1/2*(np.log((1-weighted_Error)/weighted_Error)+np.log(self.K-1))
             self.betas.append(beta)
-            weights = weights * np.exp(-beta*y*predicted_y)
+            decision_Factor = (y==predicted_y)*1
+            np.place(decision_Factor,decision_Factor==0,-1)
+            weights = weights * np.exp(-beta*decision_Factor)
             weights = 1/weights.sum() * weights 
 
         return None
@@ -84,12 +89,19 @@ class BoostedDT:
         '''
         #TODO
         X = X.to_numpy()
-        prediction = np.zeros(X.shape[0])
+        prediction = np.zeros((X.shape[0],self.K))
+        predicted_y = np.zeros(X.shape[0])
         for t in range(self.numBoostingIters):
-            prediction += self.betas[t]*self.clfs[t].predict(X)
-        prediction =  np.sign(prediction)
-        np.place(prediction,prediction==-1,0)
-        return prediction
+            prediction += self.betas[t]*self.clfs[t].predict_proba(X)
+        for i in range(X.shape[0]):
+            predicted_y[i] = list(self.labels)[np.argmax(prediction[i,:])]
+        return predicted_y
+            
+            
+        # for i in range(len(prediction)):
+        #     abs_Distance = abs(prediction[i]-np.array(list(self.labels)))
+        #     shortest_Index = abs_Distance.argmin()
+        #     prediction[i] = np.array(list((self.labels)))[shortest_Index]
             
             
 
@@ -105,15 +117,27 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
 
 def test_boostedDT():
 
   # load the data set
-  sklearn_dataset = datasets.load_breast_cancer()
+  sklearn_dataset = datasets.load_iris()
   # convert to pandas df
   df = pd.DataFrame(sklearn_dataset.data,columns=sklearn_dataset.feature_names)
   df['CLASS'] = pd.Series(sklearn_dataset.target)
   df.head()
+  dropped_Features = set()
+  for feature in df.columns:
+    if df[feature].isnull().sum(axis=0)/df.shape[0] >= 0.5:
+        df = df.drop(feature,axis=1)
+        dropped_Features.append(feature)
+    elif df[feature].dtypes == 'O':
+        df = pd.get_dummies(df,columns=feature)
+  imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+  imp.fit(df)
+  df = pd.DataFrame(imp.transform(df),columns = df.columns)
+
 
   # split randomly into training/testing
   train, test = train_test_split(df, test_size=0.5, random_state=42)
@@ -129,11 +153,11 @@ def test_boostedDT():
   modelDT.fit(X_train, y_train)
 
   # train the boosted DT
-  modelBoostedDT = BoostedDT(numBoostingIters=100, maxTreeDepth=2)
+  modelBoostedDT = BoostedDT(numBoostingIters=100, maxTreeDepth=3)
   modelBoostedDT.fit(X_train, y_train)
 
   # train sklearn's implementation of Adaboost
-  modelSKBoostedDT = AdaBoostClassifier(DecisionTreeClassifier(max_depth=2), n_estimators=100)
+  modelSKBoostedDT = AdaBoostClassifier(DecisionTreeClassifier(max_depth=3), n_estimators=100)
   modelSKBoostedDT.fit(X_train, y_train)
 
   # output predictions on the test data
@@ -154,5 +178,23 @@ def test_boostedDT():
   print("exact same accuracy as Sklearn's boostedDT.  But, on repeated runs, they ")
   print("should be roughly equivalent and should usually exceed the standard DT.")
 
-test_boostedDT()
+# test_boostedDT()
 
+def challengeTest():
+    df = pd.read_csv('ChocolatePipes_trainData.csv')
+    label = pd.read_csv('ChocolatePipes_trainLabels.csv')
+    df = pd.merge(df,label,on='id')
+    dropped_Features = set()
+    for feature in df.columns:
+        if df[feature].isnull().sum(axis=0)/df.shape[0] >= 0.5:
+            df = df.drop(feature,axis=1)
+            dropped_Features.add(feature)
+    
+    labels 
+    df = df.drop(columns=df.columns[0])
+    catagorial_Features = {'chocolate_quality', 'chocolate_quantity','pipe_type'
+                           'chocolate_source','chocolate_source_class','Height of pipe',
+                           'Country funded by','District code','Oompa loompa management',
+                           'Cocoa farm','Country of factory','Official or Unofficial pipe',
+                           'Type of pump','Payment scheme','management','management_group'
+                           
