@@ -37,7 +37,8 @@ class BoostedDT:
         self.betas = []
         self.numBoostingIters = numBoostingIters
         self.maxTreeDepth = maxTreeDepth
-        
+        self.K = None
+        self.classes = np.array([])
         #TODO
 
 
@@ -58,12 +59,12 @@ class BoostedDT:
         y = pd.DataFrame(y)
         y = y.to_numpy().flatten()
         self.K = len(set(y))
-        self.labels = set(y)
+        self.classes = np.unique(y,axis=0)
         # self.mean = np.array(list(set(y))).mean()
         # y = y - self.mean
         weights = np.full(X.shape[0],1/X.shape[0])
         for t in range(self.numBoostingIters):
-            self.clfs[t] = tree.DecisionTreeClassifier(criterion="entropy", max_depth = self.maxTreeDepth)
+            self.clfs[t] = tree.DecisionTreeClassifier( max_depth = self.maxTreeDepth,random_state = random_state)
             self.clfs[t].fit(X,y,sample_weight = weights)
             predicted_y = self.clfs[t].predict(X)
             weighted_Error = ((predicted_y != y)*weights).sum()
@@ -94,7 +95,7 @@ class BoostedDT:
         for t in range(self.numBoostingIters):
             prediction += self.betas[t]*self.clfs[t].predict_proba(X)
         for i in range(X.shape[0]):
-            predicted_y[i] = list(self.labels)[np.argmax(prediction[i,:])]
+            predicted_y[i] = self.classes[np.argmax(prediction[i,:])]
         return predicted_y
             
             
@@ -106,7 +107,7 @@ class BoostedDT:
             
 
 
-# # Test BoostedDT
+
 
 # In[ ]:
 
@@ -122,7 +123,7 @@ from sklearn.impute import SimpleImputer
 def test_boostedDT():
 
   # load the data set
-  sklearn_dataset = datasets.load_iris()
+  sklearn_dataset = datasets.load_breast_cancer()
   # convert to pandas df
   df = pd.DataFrame(sklearn_dataset.data,columns=sklearn_dataset.feature_names)
   df['CLASS'] = pd.Series(sklearn_dataset.target)
@@ -209,13 +210,13 @@ def challengeTest():
     
     train, test = train_test_split(df, test_size=0.5, random_state=42)
   # Split into X,y matrices
-    X_train = train.drop(['CLASS'], axis=1)
-    y_train = train['CLASS']
-    X_test = test.drop(['CLASS'], axis=1)
-    y_test = test['CLASS']
+    X_train = train.drop(['label'], axis=1)
+    y_train = train['label']
+    X_test = test.drop(['label'], axis=1)
+    y_test = test['label']
 
     modelBoostedDT = BoostedDT(numBoostingIters=100, maxTreeDepth=3)
-    modelBoostedDT.fit(df,label)
+    modelBoostedDT.fit(X_train,y_train)
     
     
                            
