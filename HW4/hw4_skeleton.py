@@ -190,11 +190,32 @@ def challengeTest():
             df = df.drop(feature,axis=1)
             dropped_Features.add(feature)
     
-    labels 
-    df = df.drop(columns=df.columns[0])
-    catagorial_Features = {'chocolate_quality', 'chocolate_quantity','pipe_type'
-                           'chocolate_source','chocolate_source_class','Height of pipe',
-                           'Country funded by','District code','Oompa loompa management',
-                           'Cocoa farm','Country of factory','Official or Unofficial pipe',
-                           'Type of pump','Payment scheme','management','management_group'
+    # label = df.iloc[:,-1]
+    # df = df.drop('label',axis=1)
+    catagorial_Features = {'chocolate_quality', 'chocolate_quantity','pipe_type',
+                           'chocolate_source','chocolate_source_class',
+                           'District code','Oompa loompa management',
+                           'Cocoa farm','Official or Unofficial pipe', 'Recorded by',
+                           'Type of pump','Payment scheme','management','management_group'}
+    features_Not_Useful = {'id','Date of entry','Location'}
+    for feature in features_Not_Useful:
+        df = df.drop(feature,axis=1)
+    # for feature in catagorial_Features:
+    df = pd.get_dummies(df,columns = list(catagorial_Features))
+    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+    imp.fit(df)
+    df = pd.DataFrame(imp.transform(df),columns = df.columns)
+    
+    
+    train, test = train_test_split(df, test_size=0.5, random_state=42)
+  # Split into X,y matrices
+    X_train = train.drop(['CLASS'], axis=1)
+    y_train = train['CLASS']
+    X_test = test.drop(['CLASS'], axis=1)
+    y_test = test['CLASS']
+
+    modelBoostedDT = BoostedDT(numBoostingIters=100, maxTreeDepth=3)
+    modelBoostedDT.fit(df,label)
+    
+    
                            
