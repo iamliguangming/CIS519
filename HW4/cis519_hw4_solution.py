@@ -11,6 +11,8 @@ import pandas as pd
 import numpy as np
 # from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
+from sklearn import svm
+
 
 
 # # Adaboost-SAMME
@@ -96,7 +98,7 @@ class BoostedDT:
             prediction += self.betas[t]*self.clfs[t].predict_proba(X)
         for i in range(X.shape[0]):
             predicted_y[i] = self.classes[np.argmax(prediction[i,:])]
-        return predicted_y
+        return pd.DataFrame(predicted_y)
             
             
         # for i in range(len(prediction)):
@@ -184,6 +186,7 @@ def test_boostedDT():
 def challengeTest():
     df = pd.read_csv('ChocolatePipes_trainData.csv')
     label = pd.read_csv('ChocolatePipes_trainLabels.csv')
+    leaderboard_df = pd.read_csv('ChocolatePipes_leaderboardTestData.csv')
     df = pd.merge(df,label,on='id')
     dropped_Features = set()
     for feature in df.columns:
@@ -215,8 +218,25 @@ def challengeTest():
     X_test = test.drop(['label'], axis=1)
     y_test = test['label']
 
-    modelBoostedDT = BoostedDT(numBoostingIters=100, maxTreeDepth=3)
+    modelBoostedDT = BoostedDT(numBoostingIters=100, maxTreeDepth=10)
     modelBoostedDT.fit(X_train,y_train)
+    # svm_Model = svm.SVC(kernel = 'poly', decision_function_shape = 'ovo',degree = 3)
+    # svm_Model.fit(X_train,y_train)
     
     
-                           
+
+    
+    modelDT = DecisionTreeClassifier()
+    modelDT.fit(X_train, y_train)
+    ypred_DT = modelDT.predict(X_test)
+    # ypred_SVC = svm_Model.predict(X_test)
+    
+    ypred_BoostedDT = modelBoostedDT.predict(X_test)
+    accuracy_BoostedDT = accuracy_score(y_test, ypred_BoostedDT)
+    accuracy_DT = accuracy_score(y_test, ypred_DT)
+    # accuracy_SVC = accuracy_score(y_test,ypred_SVC)
+    print(accuracy_BoostedDT,accuracy_DT)
+
+    
+# challengeTest()
+# 
