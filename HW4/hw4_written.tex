@@ -9,13 +9,15 @@
 \usepackage{graphicx}
 \usepackage{enumitem}
 
+\renewcommand{\baselinestretch}{1.5}
+
 \title{CIS 419/519: Homework 4}
 \author{\{Yupeng Li\}}
 \date{02.26.2020}
 
 \begin{document}
     \maketitle
-    Although the solutions are entirely my own, I consulted with the following people and sources while working on this homework:
+    Although the solutions are entirely my own, I consulted with the following people and sources while working on this homework: \textbf{Yifan Yuan, Zhuoyu He}
     
     \paragraph{PART1: PROBELM SET}
 
@@ -51,6 +53,39 @@ h(x) = -1 + \frac{\sqrt{2}x}{2} + \frac{x^2}{2}
 
    \section{Support Vectors}
   	The size of the margin should either increase or stays the same for the dataset. This is because once you remove the support vector, the margin would either stay the same because of a support vector of same length or expand due to the shortest vector has been removed.
+   \section{Challenge: Generalizing to Unseen Data}
+   \subsection{The Challenge Data}
+   Some features are removed from the challenge data including data of entry, countries funded and IDs since these do not help with classifying the dataset. Other categorial features have been One-Hot-Encoded.
+   \subsection{The Boosted Decision Tree Classifier}
+   The BoostedDT classifier is submitted in the .py file. Based on cross validation, the BoostedDT has highest accuracy when the number of iterations is 100 and the tree depth is 10. This gives the highest CV score of around 77\% and train accuracy of approximately 82.7\%
+   \subsection{Comparing Boosted Decision Trees with SVMs}
+   Using SVM with Gaussian Kernel and one-versus-one training strategy, the model gives a training accuracy of 83.6\% and a CV score of approximately 76.2\%
+   \subsection{Training the Best Classifier}
+   The best classifier I discovered during the training process is the DecisionForest Classifier by Sklearn. In the process of training, I gradually increased the tree depth until the margin is diminishing. The result training accuracy is about 85\% and the result CV score is 80.6\%
+   \subsection{Comparing Your Algorithm}
+   \textbf{Preprocessing}
+   \\ The dataset is preprocessed using the process below: The dataset is first merged with the training labels so that the instances with nan predictions will be eliminated. After that, features that are not useful or redundant including id, date of entry and location are removed from the dataset. Categorial features are then One-Hot-Encoded except for country-funded feature since even it is a categorial feature, it has more than 10000 categories and it doesn't help much with classifying. After OHE, the missing features are then imputed using the simple-Imputer from Sklearn library. For the SVM classifier, an extra standardization step is performed on the dataset.
+   \\
+   \textbf{The Best Classifier}
+     \\The best classifier I discovered during the training process is the DecisionForest Classifier by Sklearn. In the process of training, I gradually increased the tree depth until the margin is diminishing. The result training accuracy is about 85\% and the result CV score is 80.6\%
+   \\
+   \textbf{Result and Discussion}
+   \\
+\begin{center}
+\begin{tabular}{ c c c }
+ \textbf{Method} &  \textbf{CVScore}&  \textbf{Training Score} \\ 
+ BoostedDT & 0.77 & 0.827 \\  
+ SVC & 0.762 & 0.836 \\
+ DecisionForest &0.806 &0.85\\
+ 
+% \caption{Table comparing different Classifiers on the Training Data}
+  
+\end{tabular}
+\end{center}
+\\The table above compares my results using different training models. From above we can see that the Decision Forest classifier has the highest CVScore and followed by BoostedDecision Tree and SupportVector Machine using Gaussian. For the Decision Forest model, it reaches its highest generalization accuracy at depth of 20. For the SVC model, it reaches its highest accuracy when using the rbf Kernel and when the data is standardized. For the Boosted DT model, it reaches its highest accuracy when the maximum depth is 10.
+ 
+    
+   
 
         
 \end{document}

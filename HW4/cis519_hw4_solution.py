@@ -11,7 +11,9 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
+from sklearn.neural_network import MLPClassifier
 from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
 
 
 
@@ -235,19 +237,26 @@ def challengeTest():
     modelBoostedDT = BoostedDT(numBoostingIters=100, maxTreeDepth=10)
     modelBoostedDT.fit(df,label)
     
-    BoostedDT_prediction  = modelBoostedDT.predict(leaderboard_df)
-    BoostedDT_prediction  = pd.concat([leaderboard_id,BoostedDT_prediction],axis=1)
-    BoostedDT_prediction=BoostedDT_prediction.rename(columns={0:"label"})
-    BoostedDT_prediction.to_csv('predictions-grading-BoostedDT.csv',index = False)
-    BoostedDT_prediction.to_csv('predictions-grading-best.csv',index = False)
+    # BoostedDT_prediction  = modelBoostedDT.predict(leaderboard_df)
+    # BoostedDT_prediction  = pd.concat([leaderboard_id,BoostedDT_prediction],axis=1)
+    # BoostedDT_prediction=BoostedDT_prediction.rename(columns={0:"label"})
+    # BoostedDT_prediction.to_csv('predictions-grading-BoostedDT.csv',index = False)
+    # BoostedDT_prediction.to_csv('predictions-grading-best.csv',index = False)
 
 
-    svm_Model = svm.SVC(kernel = 'rbf', decision_function_shape = 'ovo')
-    svm_Model.fit(df_standard,label)
-    svm_Predictions = pd.DataFrame(svm_Model.predict(leaderboard_standard))
-    svm_Predictions  = pd.concat([leaderboard_id,svm_Predictions],axis=1)
-    svm_Predictions = svm_Predictions.rename(columns={0:"label"})
-    svm_Predictions.to_csv('predictions-grading-SVC.csv',index = False)
+    # svm_Model = svm.SVC(kernel = 'rbf', decision_function_shape = 'ovo')
+    # svm_Model.fit(df_standard,label)
+    # svm_Predictions = pd.DataFrame(svm_Model.predict(leaderboard_standard))
+    # svm_Predictions  = pd.concat([leaderboard_id,svm_Predictions],axis=1)
+    # svm_Predictions = svm_Predictions.rename(columns={0:"label"})
+    # svm_Predictions.to_csv('predictions-grading-SVC.csv',index = False)
+    
+    mlp_Model = RandomForestClassifier(max_depth=20)
+    mlp_Model.fit(df,label)
+    mlp_Predictions = pd.DataFrame(mlp_Model.predict(leaderboard_df))
+    mlp_Predictions  = pd.concat([leaderboard_id,mlp_Predictions],axis=1)
+    mlp_Predictions.to_csv('predictions-grading-best.csv',index = False)
+    
     
     
     
@@ -265,6 +274,5 @@ def challengeTest():
     # accuracy_SVC = accuracy_score(y_test,ypred_SVC)
     # print(accuracy_BoostedDT,accuracy_DT)
 
-    
+    # 
 # challengeTest()
-# 
