@@ -9,7 +9,7 @@
 
 import pandas as pd
 import numpy as np
-# from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn import svm
 
@@ -186,7 +186,8 @@ def test_boostedDT():
 def challengeTest():
     df = pd.read_csv('ChocolatePipes_trainData.csv')
     label = pd.read_csv('ChocolatePipes_trainLabels.csv')
-    leaderboard_df = pd.read_csv('ChocolatePipes_leaderboardTestData.csv')
+    leaderboard_df = pd.read_csv('ChocolatePipes_gradingTestData.csv')
+    leaderboard_id = leaderboard_df['id']
     df = pd.merge(df,label,on='id')
     dropped_Features = set()
     for feature in df.columns:
@@ -194,7 +195,7 @@ def challengeTest():
             df = df.drop(feature,axis=1)
             dropped_Features.add(feature)
     
-    # label = df.iloc[:,-1]
+    label = df.iloc[:,-1]
     # df = df.drop('label',axis=1)
     catagorial_Features = {'chocolate_quality', 'chocolate_quantity','pipe_type',
                            'chocolate_source','chocolate_source_class',
@@ -204,38 +205,65 @@ def challengeTest():
     features_Not_Useful = {'id','Date of entry','Location'}
     for feature in features_Not_Useful:
         df = df.drop(feature,axis=1)
+        leaderboard_df = leaderboard_df.drop(feature,axis=1)
     # for feature in catagorial_Features:
     df = pd.get_dummies(df,columns = list(catagorial_Features))
+    leaderboard_df = pd.get_dummies(leaderboard_df,columns = list(catagorial_Features))
+    for features in set(leaderboard_df.columns):
+        if features not in set(df.columns):
+            leaderboard_df = leaderboard_df.drop(features,axis=1)
+    for features in set(df.columns):
+        if features not in set(leaderboard_df.columns):
+            df = df.drop(features,axis=1)
+        
     imp = SimpleImputer(missing_values=np.nan, strategy='mean')
     imp.fit(df)
     df = pd.DataFrame(imp.transform(df),columns = df.columns)
+    imp.fit(leaderboard_df)
+    leaderboard_df = pd.DataFrame(imp.transform(leaderboard_df),columns = leaderboard_df.columns)
+    standardizer = StandardScaler()
+    df_standard = pd.DataFrame(standardizer.fit_transform(df))
+    leaderboard_standard = pd.DataFrame(standardizer.fit_transform(leaderboard_df))
     
-    
-    train, test = train_test_split(df, test_size=0.5, random_state=42)
-  # Split into X,y matrices
-    X_train = train.drop(['label'], axis=1)
-    y_train = train['label']
-    X_test = test.drop(['label'], axis=1)
-    y_test = test['label']
+  #   train, test = train_test_split(df, test_size=0.5, random_state=42)
+  # # Split into X,y matrices
+  #   X_train = train.drop(['label'], axis=1)
+  #   y_train = train['label']
+  #   X_test = test.drop(['label'], axis=1)
+  #   y_test = test['label']
 
     modelBoostedDT = BoostedDT(numBoostingIters=100, maxTreeDepth=10)
-    modelBoostedDT.fit(X_train,y_train)
-    # svm_Model = svm.SVC(kernel = 'poly', decision_function_shape = 'ovo',degree = 3)
-    # svm_Model.fit(X_train,y_train)
+    modelBoostedDT.fit(df,label)
+    
+    BoostedDT_prediction  = modelBoostedDT.predict(leaderboard_df)
+    BoostedDT_prediction  = pd.concat([leaderboard_id,BoostedDT_prediction],axis=1)
+    BoostedDT_prediction=BoostedDT_prediction.rename(columns={0:"label"})
+    BoostedDT_prediction.to_csv('predictions-grading-BoostedDT.csv',index = False)
+    BoostedDT_prediction.to_csv('predictions-grading-best.csv',index = False)
+
+
+    svm_Model = svm.SVC(kernel = 'rbf', decision_function_shape = 'ovo')
+    svm_Model.fit(df_standard,label)
+    svm_Predictions = pd.DataFrame(svm_Model.predict(leaderboard_standard))
+    svm_Predictions  = pd.concat([leaderboard_id,svm_Predictions],axis=1)
+    svm_Predictions = svm_Predictions.rename(columns={0:"label"})
+    svm_Predictions.to_csv('predictions-grading-SVC.csv',index = False)
+    
     
     
 
     
-    modelDT = DecisionTreeClassifier()
-    modelDT.fit(X_train, y_train)
-    ypred_DT = modelDT.predict(X_test)
-    # ypred_SVC = svm_Model.predict(X_test)
+    # modelDT = DecisionTreeClassifier()
+    # modelDT.fit(df.drop['label',axis=1],df['label',axis=1])
+                
+    # ypred_DT = modelDT.predict(X_test)
+    # # ypred_SVC = svm_Model.predict(X_test)
     
-    ypred_BoostedDT = modelBoostedDT.predict(X_test)
-    accuracy_BoostedDT = accuracy_score(y_test, ypred_BoostedDT)
-    accuracy_DT = accuracy_score(y_test, ypred_DT)
+    # ypred_BoostedDT = modelBoostedDT.predict(X_test)
+    # accuracy_BoostedDT = accuracy_score(y_test, ypred_BoostedDT)
+    # accuracy_DT = accuracy_score(y_test, ypred_DT)
     # accuracy_SVC = accuracy_score(y_test,ypred_SVC)
-    print(accuracy_BoostedDT,accuracy_DT)
+    # print(accuracy_BoostedDT,accuracy_DT)
 
     
 # challengeTest()
