@@ -16,6 +16,7 @@ from torchvision import transforms
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 LABEL_NAMES = {'background':0, 'kart':1, 'pickup':2, 'nitro':3, 'bomb':4, 'projectile':5}
 
@@ -28,7 +29,7 @@ LABEL_=['background','kart','pickup','nitro','bomb','projectile']
 
 
 # upload the data and unzip it. You will see data/ with train/ and valid/. 
-get_ipython().system.unzip('supertux_classification_trainval.zip')
+# get_ipython().system('unzip supertux_classification_trainval.zip')
 
 
 # ## Defining Torch Dataset
@@ -41,21 +42,31 @@ class SuperTuxDataset(Dataset):
         """
         Your code here
         Hint: Use the python csv library to parse labels.csv
+        
         """
-        raise NotImplementedError('SuperTuxDataset.__init__')
+        labels = pd.read_csv(image_path+'/'+'labels.csv')
+        self.image_path = image_path
+        self.files = labels.iloc[:,0]
+        self.labels = labels['label'].map(LABEL_NAMES)
+        self.track = labels.iloc[:,2]
+        # raise NotImplementedError('SuperTuxDataset.__init__')
 
     def __len__(self):
         """
         Your code here
         """
-        raise NotImplementedError('SuperTuxDataset.__len__')
+        return self.labels.shape[0]
+        # raise NotImplementedError('SuperTuxDataset.__len__')
 
     def __getitem__(self, idx):
         """
         Your code here
         return a tuple: img, label
         """
-        raise NotImplementedError('SuperTuxDataset.__getitem__')
+        img = Image.open(self.image_path + '/'+self.files.iloc[idx])
+        img = transforms.ToTensor()(img)
+        return (img,self.labels[idx])
+        # raise NotImplementedError('SuperTuxDataset.__getitem__')
 
 
 # The following utility visualizes the data, optionally, as a sanity check for your implementation of the dataset class. Call visualize_data() after setting the correct variables inside this code snippet. 
@@ -65,7 +76,7 @@ class SuperTuxDataset(Dataset):
 
 def visualize_data():
 
-    Path_to_your_data= ' '
+    Path_to_your_data= 'data/train'
     dataset = SuperTuxDataset(image_path=Path_to_your_data)
 
     f, axes = plt.subplots(3, len(LABEL_NAMES))
@@ -103,6 +114,12 @@ class ClassificationLoss(torch.nn.Module):
         @return:  torch.Tensor((,))
         Hint: Don't be too fancy, this is a one-liner
         """
+        B = target.shape[0]
+        log_Proba = torch.zeros(B,)
+        softmax = torch.nn.Softmax(input)
+        for i in range(B):
+            log_Proba[i] = -np.log(softmax[i,target[i]])
+        return log_Proba.mean()
         raise NotImplementedError('ClassificationLoss.forward')
 
 
@@ -111,6 +128,13 @@ class CNNClassifier(torch.nn.Module):
         """
         Your code here
         """
+        super(CNNClassifier,self).__init__()
+        self.conv1 = torch.nn.Conv2d(3,32, 3,1)
+        self.conv2 = torch.nn.Conv2d(32,64,3,1)
+        self.dropout1 = torch.nn.Dropout2d(0.25)
+        self.dropout2 = torch.nn.Dropout2d(0.5)
+        self.fc1 = torch.nn.Linear(57600,128)
+        self.fc2 = torch.nn.Linear(128,6)
         raise NotImplementedError('CNNClassifier.__init__')
 
     def forward(self, x):
@@ -119,6 +143,17 @@ class CNNClassifier(torch.nn.Module):
         @x: torch.Tensor((B,3,64,64))
         @return: torch.Tensor((B,6))
         """
+        x = self.conv1(x)
+        x = torch.nn.functional.relu(x)
+        x = self.conv2(x)
+        x = torch.nn.functional.max_pool2d(x,2)
+        x = self.dropout1(x)
+        x = torch.flatten(x,1)
+        x = self.fc1(x)
+        x = torch.nn.functional.relu(x)
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        return x 
         raise NotImplementedError('CNNClassifier.forward')
 
 
@@ -163,12 +198,16 @@ def test_logging(train_logger, valid_logger):
         for iteration in range(20):
             dummy_train_loss = 0.9**(epoch+iteration/20.)
             dummy_train_accuracy = epoch/10. + torch.randn(10)
-            raise NotImplementedError('Log the training loss')
-        raise NotImplementedError('Log the training accuracy')
+            train_logger.add_scalar('train/loss',dummy_train_loss)
+            
+            # raise NotImplementedError('Log the training loss')
+        train_logger.add_scalar('train/accuracy',dummy_train_accuracy.mean())
+        # raise NotImplementedError('Log the training accuracy')
         torch.manual_seed(epoch)
         for iteration in range(10):
             dummy_validation_accuracy = epoch / 10. + torch.randn(10)
-        raise NotImplementedError('Log the validation accuracy')
+        valid_logger.add_scalar('test/accuracy',dummy_validation_accuracy.mean())
+        # raise NotImplementedError('Log the validation accuracy')
 
 
 # After implementing `test_logging()`, call it below. This should produce some plots on your tensorboard.
@@ -219,7 +258,8 @@ def predict(model, inputs, device='cpu'):
     inputs = inputs.to(device)
     logits = model(inputs)
     return F.softmax(logits, -1)
-    def draw_bar(axis, preds, labels=None):
+
+def draw_bar(axis, preds, labels=None):
     y_pos = np.arange(6)
     axis.barh(y_pos, preds, align='center', alpha=0.5)
     axis.set_xticks(np.linspace(0, 1, 10))
