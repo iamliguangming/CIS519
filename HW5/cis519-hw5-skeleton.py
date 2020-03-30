@@ -116,11 +116,11 @@ class ClassificationLoss(torch.nn.Module):
         """
         B = target.shape[0]
         log_Proba = torch.zeros(B,)
-        softmax = torch.nn.Softmax(input)
+        softmax = torch.nn.functional.softmax(input,dim=1)
         for i in range(B):
-            log_Proba[i] = -np.log(softmax[i,target[i]])
+            log_Proba[i] = -torch.log(softmax[i,target[i]])
         return log_Proba.mean()
-        raise NotImplementedError('ClassificationLoss.forward')
+        # raise NotImplementedError('ClassificationLoss.forward')
 
 
 class CNNClassifier(torch.nn.Module):
@@ -135,7 +135,7 @@ class CNNClassifier(torch.nn.Module):
         self.dropout2 = torch.nn.Dropout2d(0.5)
         self.fc1 = torch.nn.Linear(57600,128)
         self.fc2 = torch.nn.Linear(128,6)
-        raise NotImplementedError('CNNClassifier.__init__')
+        # raise NotImplementedError('CNNClassifier.__init__')
 
     def forward(self, x):
         """
@@ -154,7 +154,7 @@ class CNNClassifier(torch.nn.Module):
         x = self.dropout2(x)
         x = self.fc2(x)
         return x 
-        raise NotImplementedError('CNNClassifier.forward')
+        # raise NotImplementedError('CNNClassifier.forward')
 
 
 # In[ ]:
@@ -166,14 +166,14 @@ from os import path
 
 def save_model(model):
     if isinstance(model, CNNClassifier):
-        return save(model.state_dict(), path.join(path.dirname(path.abspath(__file__)), 'cnn.th'))
+        return save(model.state_dict(), path.join(path.dirname(path.abspath("__file__")), 'cnn.th'))
     
     raise ValueError("model type '%s' not supported!"%str(type(model)))
 
 
 def load_model():
     r = CNNClassifier()
-    r.load_state_dict(load(path.join(path.dirname(path.abspath(__file__)), 'cnn.th'), map_location='cpu'))
+    r.load_state_dict(load(path.join(path.dirname(path.abspath("__file__")), 'cnn.th'), map_location='cpu'))
     return r
 
 
@@ -193,20 +193,22 @@ def test_logging(train_logger, valid_logger):
     """
 
     # This is a strongly simplified training loop
+    global_steps= 0 
     for epoch in range(10):
         torch.manual_seed(epoch)
         for iteration in range(20):
             dummy_train_loss = 0.9**(epoch+iteration/20.)
             dummy_train_accuracy = epoch/10. + torch.randn(10)
-            train_logger.add_scalar('train/loss',dummy_train_loss)
+            train_logger.add_scalar('train/loss',dummy_train_loss,global_step = global_steps )
+            global_steps += 1
             
             # raise NotImplementedError('Log the training loss')
-        train_logger.add_scalar('train/accuracy',dummy_train_accuracy.mean())
+        train_logger.add_scalar('train/accuracy',dummy_train_accuracy.mean(),global_step = global_steps)
         # raise NotImplementedError('Log the training accuracy')
         torch.manual_seed(epoch)
         for iteration in range(10):
             dummy_validation_accuracy = epoch / 10. + torch.randn(10)
-        valid_logger.add_scalar('test/accuracy',dummy_validation_accuracy.mean())
+        valid_logger.add_scalar('test/accuracy',dummy_validation_accuracy.mean(),global_step = global_steps)
         # raise NotImplementedError('Log the validation accuracy')
 
 
@@ -215,32 +217,24 @@ def test_logging(train_logger, valid_logger):
 # In[ ]:
 
 
-get_ipython().run_line_magic('load_ext', 'tensorboard')
+# %load_ext tensorboard
+# %reload_ext tensorboard
+
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+# from torch.utils.tensorboard import SummaryWriter
+# ROOT_LOG_DIR = './logdir'
+# %tensorboard --logdir {ROOT_LOG_DIR} #Launch tensorboard
+# train_logger = tb.SummaryWriter(path.join('./logdir', 'train'))
+# valid_logger = tb.SummaryWriter(path.join('./logdir', 'test'))
+# test_logging(train_logger, valid_logger)
 
 
-# In[ ]:
 
 
-get_ipython().run_line_magic('reload_ext', 'tensorboard')
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-from torch.utils.tensorboard import SummaryWriter
-ROOT_LOG_DIR = './logdir'
-
-
-# In[ ]:
-
-
-get_ipython().run_line_magic('tensorboard', '--logdir {ROOT_LOG_DIR} #Launch tensorboard')
-
-
-# In[ ]:
-
-
-train_logger = tb.SummaryWriter(path.join('./logdir', 'train'))
-valid_logger = tb.SummaryWriter(path.join('./logdir', 'test'))
-test_logging(train_logger, valid_logger)
+# train_logger = tb.SummaryWriter(path.join('./logdir', 'train'))
+# valid_logger = tb.SummaryWriter(path.join('./logdir', 'test'))
+# test_logging(train_logger, valid_logger)
 
 
 # **Training and evaluation utility functions** 
@@ -249,6 +243,8 @@ test_logging(train_logger, valid_logger)
 
 # In[ ]:
 
+import torch.nn.functional as F
+import torchvision.transforms as TF
 
 def accuracy(outputs, labels):
     outputs_idx = outputs.max(1)[1].type_as(labels)
@@ -277,7 +273,7 @@ def visualize_predictions():
     model = load_model()
     model.eval()
 
-    validation_image_path='' #enter the path 
+    validation_image_path='data/valid' #enter the path 
 
     dataset = SuperTuxDataset(image_path=validation_image_path)
 
@@ -289,12 +285,11 @@ def visualize_predictions():
         img, label = dataset[idx]
         preds = predict(model, img[None], device='cpu').detach().cpu().numpy()
 
-        axes[0, i].imshow(TF.to_pil_image(img))
+        axes[0, i].imshow(TF.ToPILImage()(img))
         axes[0, i].axis('off')
         draw_bar(axes[1, i], preds[0], LABEL_ if i == 0 else None)
 
     plt.show()
-
 
 # ## Training models
 # 
@@ -320,8 +315,9 @@ class Args(object):
 
 args = Args();
 # Add attributes to args here, such as:
-# args.learning_rate = 0.0001
-# args.log_dir = './my_tensorboard_log_directory' 
+args.learning_rate = 0.0001
+args.log_dir = './logdir' 
+args.epochs = 20
 
 
 # Then implement `train`. Follow the instructions in the assignment.
@@ -333,15 +329,46 @@ def train(args):
     """
     Your code here
     """
-    model = CNNClassifier()
+    model = load_model()
+    loss_Function = ClassificationLoss()
+    optimizer = torch.optim.AdamW(model.parameters(),lr = args.learning_rate)
+    train_data = load_data('data/train')
+    valid_data = load_data('data/valid')
+    global_steps = 9735
     if args.log_dir is not None:
         train_logger = tb.SummaryWriter(path.join(args.log_dir, 'train'))
         valid_logger = tb.SummaryWriter(path.join(args.log_dir, 'valid'))
+    
+    
+    for i in range(args.epochs):
+        number_Batch = 0 
+        valid_Acc = 0
+        for input, target in train_data:
+            optimizer.zero_grad()
+            output = model.forward(input)
+            loss = loss_Function.forward(output, target)
+            train_logger.add_scalar('train/loss',loss,global_step=global_steps)  
+            loss.backward()
+            optimizer.step()
+            print('epoch')
+            print(i)
+            train_Acc = accuracy(predict(model,input), target)
 
-    raise NotImplementedError('train')
+            global_steps +=1
+        train_logger.add_scalar('train/accuracy',train_Acc,global_step=global_steps)
+        print(f'Current Train Accuracy {train_Acc}')
+        print(f'Current Step {global_steps}')
+        for input, target in valid_data:
+            number_Batch+=1
+            valid_Acc += accuracy(predict(model,input), target)
+        valid_logger.add_scalar('valid/accuracy',valid_Acc/number_Batch,global_step=global_steps)
+        print(f'Current Valid Accuracy {valid_Acc/number_Batch}')
+        print(f'Current Step {global_steps}')
+
+    # raise NotImplementedError('train')
 
     save_model(model)
-
+    
 
 # Now, you can call `train` with `train(args)`, where `args` contains your various favorite settings of hyperparameters and other arguments that your implementation of `train` needs.
 # 
