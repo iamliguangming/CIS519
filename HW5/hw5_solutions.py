@@ -7,7 +7,7 @@
 import torch
 import torchvision
 
-import torch.utils.tensorboard as tb
+# import torch.utils.tensorboard as tb
 
 from PIL import Image
 
