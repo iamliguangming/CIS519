@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  17 MAR 2020 15:38
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  30 MAR 2020 21:18
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -300,27 +300,45 @@ File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 19.
+<HW5_1.jpeg, id=1, 1229.59375pt x 514.92375pt>
+File: HW5_1.jpeg Graphic file (type jpg)
+<use HW5_1.jpeg>
+Package pdftex.def Info: HW5_1.jpeg  used on input line 52.
+(pdftex.def)             Requested size: 227.62204pt x 95.32225pt.
+ [1
 
-./HW5_report.tex:41: Missing $ inserted.
-<inserted text> 
-                $
-l.41  0 & 0 & \sigma
-                    (40) = 1 \\
-? 
-./HW5_report.tex:41: Emergency stop.
-<inserted text> 
-                $
-l.41  0 & 0 & \sigma
-                    (40) = 1 \\
-End of file on the terminal!
-
- 
+{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+<1_b.jpeg, id=17, 2094.82625pt x 1278.7775pt>
+File: 1_b.jpeg Graphic file (type jpg)
+<use 1_b.jpeg>
+Package pdftex.def Info: 1_b.jpeg  used on input line 73.
+(pdftex.def)             Requested size: 227.62204pt x 138.94885pt.
+ [2 <./HW5_1.jpeg> <./1_b.jpeg>] [3] [4] (./HW5_report.aux) ) 
 Here is how much of TeX's memory you used:
- 4269 strings out of 492616
- 60591 string characters out of 6129482
- 139300 words of memory out of 5000000
- 8149 multiletter control sequences out of 15000+600000
+ 4286 strings out of 492616
+ 60801 string characters out of 6129482
+ 143300 words of memory out of 5000000
+ 8159 multiletter control sequences out of 15000+600000
  8716 words of font info for 32 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,7n,32p,277b,271s stack positions out of 5000i,500n,10000p,200000b,80000s
-./HW5_report.tex:41:  ==> Fatal error occurred, no output PDF file produced!
+ 41i,14n,32p,277b,271s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texliv
+e/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive
+/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/
+2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2
+019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/20
+19/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2019
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2019/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2019/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2019/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2019/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2019/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2019/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmsy7.pfb>
+Output written on HW5_report.pdf (4 pages, 813091 bytes).
+PDF statistics:
+ 67 PDF objects out of 1000 (max. 8388607)
+ 46 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+
