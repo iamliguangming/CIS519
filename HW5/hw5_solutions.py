@@ -317,7 +317,7 @@ args = Args();
 # Add attributes to args here, such as:
 args.learning_rate = 0.0001
 args.log_dir = './logdir' 
-args.epochs = 20
+args.epochs = 10
 
 
 # Then implement `train`. Follow the instructions in the assignment.
@@ -334,7 +334,7 @@ def train(args):
     optimizer = torch.optim.AdamW(model.parameters(),lr = args.learning_rate)
     train_data = load_data('data/train')
     valid_data = load_data('data/valid')
-    global_steps = 9735
+    global_steps = 1650
     if args.log_dir is not None:
         train_logger = tb.SummaryWriter(path.join(args.log_dir, 'train'))
         valid_logger = tb.SummaryWriter(path.join(args.log_dir, 'valid'))
@@ -368,7 +368,37 @@ def train(args):
     # raise NotImplementedError('train')
 
     save_model(model)
-    
+
+def test():
+
+    # device device
+    device = torch.device("cpu")
+    # load the model
+    model = load_model()
+    model.eval()
+    model = model.to(device)
+    # create loss
+    criterion = ClassificationLoss()    
+    # load data
+    test_loader = load_data('data/valid/')
+
+    test_loss = 0
+    correct = 0
+
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += criterion(output, target).item()
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+        test_loss /= len(test_loader.dataset)
+
+        print('\nTest set: Average Loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.
+              format(test_loss, correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)))
+        
+# test()
 
 # Now, you can call `train` with `train(args)`, where `args` contains your various favorite settings of hyperparameters and other arguments that your implementation of `train` needs.
 # 
