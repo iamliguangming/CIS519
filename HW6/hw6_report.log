@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  15 APR 2020 18:53
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  22 APR 2020 20:54
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -319,32 +319,59 @@ Underfull \hbox (badness 10000) in paragraph at lines 37--40
 
  []
 
-[2] (./hw6_report.aux) ) 
+
+Underfull \hbox (badness 10000) in paragraph at lines 43--45
+
+ []
+
+<lossinit20ep2.png, id=17, 371.3875pt x 252.945pt>
+File: lossinit20ep2.png Graphic file (type png)
+<use lossinit20ep2.png>
+Package pdftex.def Info: lossinit20ep2.png  used on input line 54.
+(pdftex.def)             Requested size: 227.62204pt x 155.0334pt.
+[2]
+<vanillainit2ep20.png, id=23, 363.3575pt x 248.93pt>
+File: vanillainit2ep20.png Graphic file (type png)
+<use vanillainit2ep20.png>
+Package pdftex.def Info: vanillainit2ep20.png  used on input line 61.
+(pdftex.def)             Requested size: 227.62204pt x 155.9417pt.
+<rewardinit2ep20.png, id=24, 717.68124pt x 254.9525pt>
+File: rewardinit2ep20.png Graphic file (type png)
+<use rewardinit2ep20.png>
+Package pdftex.def Info: rewardinit2ep20.png  used on input line 67.
+(pdftex.def)             Requested size: 227.62204pt x 80.85898pt.
+<Dagger.png, id=25, 734.745pt x 613.29124pt>
+File: Dagger.png Graphic file (type png)
+<use Dagger.png>
+Package pdftex.def Info: Dagger.png  used on input line 74.
+(pdftex.def)             Requested size: 227.62204pt x 189.99666pt.
+ [3 <./lossinit20ep2.png> <./vanillainit2ep20.png> <./rewardinit2ep20.png>]
+[4 <./Dagger.png>] (./hw6_report.aux) ) 
 Here is how much of TeX's memory you used:
- 4342 strings out of 492616
- 61582 string characters out of 6129482
+ 4365 strings out of 492616
+ 62017 string characters out of 6129482
  140378 words of memory out of 5000000
- 8203 multiletter control sequences out of 15000+600000
+ 8221 multiletter control sequences out of 15000+600000
  9828 words of font info for 38 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,6n,32p,476b,271s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2019/texmf-dist/fonts/type1/public/
-bbold-type1/bbold10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmbx10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmbx12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmex10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmmi10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmmi7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmr12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmr17.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cms
-y10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
-7.pfb>
-Output written on hw6_report.pdf (2 pages, 118287 bytes).
+</usr/local/texlive/2019/texmf-dist/font
+s/type1/public/bbold-type1/bbold10.pfb></usr/local/texlive/2019/texmf-dist/font
+s/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2019/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2019/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2019/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2019/texmf-dist/fonts/ty
+pe1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmr17.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmr7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmsy10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmsy7.pfb>
+Output written on hw6_report.pdf (4 pages, 487515 bytes).
 PDF statistics:
- 59 PDF objects out of 1000 (max. 8388607)
- 42 compressed objects within 1 object stream
+ 74 PDF objects out of 1000 (max. 8388607)
+ 47 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

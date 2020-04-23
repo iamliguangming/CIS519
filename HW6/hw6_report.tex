@@ -38,4 +38,39 @@ We can easily obtain the fact that
 Since the discounted factor $\gamma$ is always smaller than 1, the second term in the equation above can be simplified as $\frac{C}{1-\gamma}$ based on the geometric series sum.\\\\
 \textbf{(c)} Based on the facts above, that is to say, the constant K added to the values of all states is simply 
 \[\frac{C}{1-\gamma}\]
+\paragraph{PART II: PROGRAMMING EXERCISES}
+\section{Random policy for the MountainCar gym environment}
+\textbf{(i)} The action spaces consist of three discrete actions each regarding to accelerate to left, accelerate to right and stay still. The observation space is a two dimensional space each of which represents x or y coordinate of the mountain car.\\\\
+\textbf{(ii)} The mean reward obtained over 10 episodes remain to be -200 since the car never got to the goal based on a random policy within 200 steps.
+
+\section{Train a Q-learner and generate expert trajectories}
+The function \textbf{discretize()} turns the infinite set of combinations of the observation space into discretized finite states and round the infinite state to its closest. Increasing the discretization argument  will increase the model size since there would be more possible observation states.
+\section{Train an imitation policy}
+
+The loss and success rate of 20 episodes with 2 epochs are in the following figure
+		\begin{figure}[H]
+			\caption{20 Episodes and 2 Epochs}
+			\centering
+			\includegraphics[width=8cm]{lossinit20ep2.png}
+		\end{figure}
+Since there are only 2 epochs, the data is too little to plot out for success rate reward
+The loss and success rate of 2 episodes with 20 epochs are in the following figure
+		\begin{figure}[H]
+			\caption{2 Episodes and 20 Epochs loss}
+			\centering
+			\includegraphics[width=8cm]{vanillainit2ep20.png}
+		\end{figure}
+The average reward and average success follows:
+		\begin{figure}[H]
+			\caption{2 Episodes and 20 Epochs Reward and Success}
+			\centering
+			\includegraphics[width=8cm]{rewardinit2ep20.png}
+		\end{figure}
+\section{Implement DAgger}
+After implementing DAgger, the performance of the model further improves as in the following picture:
+		\begin{figure}[H]
+			\caption{DAgger loss, reward and success}
+			\centering
+			\includegraphics[width=8cm]{Dagger.png}
+		\end{figure}
 \end{document}
